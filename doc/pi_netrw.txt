@@ -1,0 +1,1065 @@
+*pi_netrw.txt  For Vim version 6.2.  Last change: Sep 10, 2004
+
+
+		VIM REFERENCE MANUAL    by Charles E. Campbell, Jr.
+
+*dav*           *http*          *network*       *rcp*           *scp*
+*fetch*         *netrw*         *Nread*         *rsync*         *sftp*
+*ftp*           *netrw.vim*     *Nwrite*        *netrw-file*
+
+==============================================================================
+0. Contents						*netrw-contents*
+
+1.  Netrw Reference.....................................|netrw-ref|
+2.  Network-Oriented File Transfer......................|netrw-xfer|
+3.  Activation..........................................|netrw-activate|
+4.  Transparent File Transfer...........................|netrw-transparent|
+5.  Ex Commands.........................................|netrw-ex|
+6.  Variables and Options...............................|netrw-var|
+7.  Directory Browser...................................|netrw-browse|
+8.  Problems and Fixes..................................|netrw-problems|
+9.  Debugging...........................................|netrw-debug|
+10. History.............................................|netrw-history|
+11. Credits.............................................|netrw-credits|
+
+The functionality mentioned here is done via using |standard-plugin|
+techniques.  This plugin is only available if
+
+	set nocp                    " 'compatible' is not set
+	filetype plugin on          " plugins are enabled
+
+You can avoid loading this plugin by setting the "loaded_netrw" variable
+in your <.vimrc> file: >
+
+	:let loaded_netrw = 1
+
+{Vi does not have any of this}
+
+==============================================================================
+1. Netrw Reference						*netrw-ref*
+
+    OPTIONS
+	let g:netrw_ftp =0 use ftp (default)		     (uid password)
+			=1 use alternate ftp method	(user uid password)
+	  If you're having trouble with ftp, try changing the value
+	  of this variable in your <.vimrc> to change methods
+
+	let g:netrw_ignorenetrc= 1
+	  If you have a <.netrc> file but it doesn't work and you
+	  want it ignored, then set this variable as shown.  Its mere
+	  existence is enough to cause <.netrc> to be ignored.
+
+	Controlling External Applications
+
+	 Protocol  Variable	     Default Value
+	 --------  ----------------  -------------
+	    dav:    g:netrw_dav_cmd  = "cadaver"
+	  fetch:  g:netrw_fetch_cmd  = "fetch -o"
+	    ftp:    g:netrw_ftp_cmd  = "ftp"
+           http:   g:netrw_http_cmd  = "fetch -o"    if fetch is available
+	   http:   g:netrw_http_cmd  = "wget -q -O"  If wget  is available
+	    rcp:    g:netrw_rcp_cmd  = "rcp"
+	  rsync:  g:netrw_rsync_cmd  = "rsync -a"
+	    scp:    g:netrw_scp_cmd  = "scp -q"
+	   sftp:   g:netrw_sftp_cmd  = "sftp"
+
+    READING					*netrw-read* *netrw-nread*
+	:Nread ?					give help
+	:Nread "machine:path"				uses rcp
+	:Nread "machine path"				uses ftp   with <.netrc>
+	:Nread "machine id password path"		uses ftp
+	:Nread "dav://machine[:port]/path"		uses cadaver
+	:Nread "fetch://[user@]machine/path"		uses fetch
+	:Nread "ftp://[user@]machine[[:#]port]/path"	uses ftp   autodetects <.netrc>
+	:Nread "http://[user@]machine/path"		uses http  uses wget
+	:Nread "rcp://[user@]machine/path"		uses rcp
+	:Nread "rsync://[user@]machine[:port]/path"	uses rsync
+	:Nread "scp://[user@]machine[[:#]port]/path"	uses scp
+	:Nread "sftp://[user@]machine/path"		uses sftp
+
+    WRITING					*netrw-write* *netrw-nwrite*
+	:Nwrite ?    					give help
+	:Nwrite "machine:path"				uses rcp
+	:Nwrite "machine path"				uses ftp   with <.netrc>
+	:Nwrite "machine id password path"		uses ftp
+	:Nwrite "dav://machine[:port]/path"		uses cadaver
+	:Nwrite "ftp://[user@]machine[[:#]port]/path"	uses ftp   autodetects <.netrc>
+	:Nwrite "rcp://[user@]machine/path"		uses rcp
+	:Nwrite "rsync://[user@]machine[:port]/path"	uses rsync
+	:Nwrite "scp://[user@]machine[[:#]port]/path"	uses scp
+	:Nwrite "sftp://[user@]machine/path"		uses sftp
+	http: not supported!
+
+    DIRECTORY LISTING
+	:Nread [protocol]://[user]@hostname/path/
+
+    USER AND PASSWORD CHANGING
+	Attempts to use ftp will prompt you for a user-id and a password.
+	These will be saved in g:netrw_uid and g:netrw_passwd Subsequent uses
+	of ftp will re-use those.  If you need to use a different user id
+	and/or password, you'll want to call NetUserPass() first.
+
+	:NetUserPass [uid [password]]		-- prompts as needed
+	:call NetUserPass()			-- prompts for uid and password
+	:call NetUserPass("uid")		-- prompts for password
+	:call NetUserPass("uid","password")	-- sets global uid and password
+
+    VARIABLES						*netrw-variables*
+	b:netrw_lastfile last file Network-read/written retained on
+			  a per-buffer basis		(supports plain :Nw )
+	s:netrw_line	  during Nw/NetWrite, holds current line   number
+	s:netrw_col	  during Nw/NetWrite, holds current column number
+			  s:netrw_line and s:netrw_col are used to
+			  restore the cursor position on writes
+	g:netrw_ftp	  if it doesn't exist, use default ftp
+			  =0 use default ftp		       (uid password)
+			  =1 use alternate ftp method	  (user uid password)
+	g:netrw_ftpmode   ="binary"				    (default)
+			  ="ascii"
+	g:netrw_uid	  (ftp) user-id,      retained on a per-session basis
+	g:netrw_passwd	  (ftp) password,     retained on a per-session basis
+	g:netrw_win95ftp  =1 if using Win95, will remove four trailing blank
+	                     lines that o/s's ftp "provides" on transfers
+			  =0 force normal ftp behavior (no trailing line
+			     removal)
+	g:netrw_cygwin	  =1 assume scp under windows is from cygwin
+	                     Also permits network browsing to use
+			     ls with time and size sorting
+							 (default if windows)
+			  =0 assume Windows' scp accepts windows-style paths
+			     Network browsing uses dir instead of ls
+			  This option is ignored if you're using unix
+	g:netrw_use_nt_rcp=0 don't use the rcp of WinNT, Win2000 and WinXP
+			  =1 use WinNT's rcp in binary mode         (default)
+
+    PATHS							*netrw-path*
+
+	Paths to files are generally user-directory relative for most protocols.
+	It is possible that some protocol will make paths relative to some
+	associated directory, however.
+
+		example:  vim scp://user@host/somefile
+		example:  vim scp://user@host/subdir1/subdir2/somefile
+	
+	where "somefile" is the "user"'s home directory.  If you wish to get a
+	file using root-relative paths, use the full path:
+
+		example:  vim scp://user@host//somefile
+		example:  vim scp://user@host//subdir1/subdir2/somefile
+
+
+==============================================================================
+2. Network-Oriented File Transfer				*netrw-xfer*
+
+Network-oriented file transfer under Vim is implemented by a VimL-based script
+(<netrw.vim>) using plugin techniques.  It currently supports both reading
+and writing across networks using rcp, scp, ftp or ftp+<.netrc>, scp, fetch,
+dav/cadaver, rsync, or sftp.
+
+http is currently supported read-only via use of wget or fetch.
+
+<netrw.vim> is a standard plugin which acts as glue between Vim and the
+various file transfer programs.  It uses autocommand events (BufReadCmd,
+FileReadCmd, BufWriteCmd) to intercept reads/writes with url-like filenames. >
+
+	ex. vim ftp://hostname/path/to/file
+<
+The characters preceding the colon specify the protocol to use;
+in the example, its ftp.  The <netrw.vim> script then formulates
+a command or a series of commands (typically ftp) which it issues
+to an external program (ftp, scp, etc) which does the actual file
+transfer/protocol.  Files are read from/written to a temporary file
+(under Unix/Linux, /tmp/...) which the <netrw.vim> script will
+clean up.
+
+One may modify any protocol's implementing external application
+by setting a variable (ex. scp uses the variable g:netrw_scp_cmd,
+which is defaulted to "scp -q").
+
+Ftp, an old protocol, seems to be blessed by numerous implementations.
+Unfortunately, some implementations are noisy (ie., add junk to the end
+of the file).  Thus, concerned users may decide to write a NetReadFixup()
+function that will clean up after reading with their ftp.  Some Unix systems
+(ie., FreeBSD) provide a utility called "fetch" which uses the ftp protocol
+but is not noisy and more convenient, actually, for <netrw.vim> to use.
+Consequently, if "fetch" is executable, it will be used to do reads for
+ftp://... (and http://...) .  See |netrw-var| for more about this.
+
+For rcp, scp, sftp, and http, one may use network-oriented file transfers
+transparently; ie.
+>
+	vim rcp://[user@]machine/path
+	vim scp://[user@]machine/path
+<
+If your ftp supports <.netrc>, then it too can be just as transparently used
+if the needed triad of machine name, user id, and password are present in
+that file.  Your ftp must be able to use the <.netrc> file on its own, however.
+>
+	vim ftp://[user@]machine[[:#]portnumber]/path
+<
+However, ftp will often need to query the user for the userid and password.
+The latter will be done "silently"; ie. asterisks will show up instead of
+the actually-typed-in password.  Netrw will retain the userid and password
+for subsequent read/writes from the most recent transfer so subsequent
+transfers (read/write) to or from that machine will take place without
+additional prompting.
+
+								*netrw-urls*
+  +=================================+============================+============+
+  |  Reading                        | Writing                    |  Uses      |
+  +=================================+============================+============+
+  | DAV:                            |                            |            |
+  |  dav://host/path                |                            | cadaver    |
+  |  :Nread dav://host/path         | :Nwrite dav://host/path    | cadaver    |
+  +---------------------------------+----------------------------+------------+
+  | FETCH:                          |                            |            |
+  |  fetch://[user@]host/path       |                            |            |
+  |  fetch://[user@]host:http/path  |  Not Available             | fetch      |
+  |  :Nread fetch://[user@]host/path|                            |            |
+  +---------------------------------+----------------------------+------------+
+  | FILE:                           |                            |            |
+  |  file:///*                      | file:///*                  |            |
+  |  file://localhost/*             | file://localhost/*         |            |
+  +---------------------------------+----------------------------+------------+
+  | FTP:          (*3)              |              (*3)          |            |
+  |  ftp://[user@]host/path         | ftp://[user@]host/path     | ftp  (*2)  |
+  |  :Nread ftp://host/path         | :Nwrite ftp://host/path    | ftp+.netrc |
+  |  :Nread host path               | :Nwrite host path          | ftp+.netrc |
+  |  :Nread host uid pass path      | :Nwrite host uid pass path | ftp        |
+  +---------------------------------+----------------------------+------------+
+  | HTTP: wget is executable: (*4)  |                            |            |
+  |  http://[user@]host/path        |        Not Available       | wget       |
+  +---------------------------------+----------------------------+------------+
+  | HTTP: fetch is executable (*4)  |                            |            |
+  |  http://[user@]host/path        |        Not Available       | fetch      |
+  +---------------------------------+----------------------------+------------+
+  | RCP:                            |                            |            |
+  |  rcp://[user@]host/path         | rcp://[user@]host/path     | rcp        |
+  +---------------------------------+----------------------------+------------+
+  | RSYNC:                          |                            |            |
+  |  rsync://[user@]host/path       | rsync://[user@]host/path   | rsync      |
+  |  :Nread rsync://host/path       | :Nwrite rsync://host/path  | rsync      |
+  |  :Nread rcp://host/path         | :Nwrite rcp://host/path    | rcp        |
+  +---------------------------------+----------------------------+------------+
+  | SCP:                            |                            |            |
+  |  scp://[user@]host/path         | scp://[user@]host/path     | scp        |
+  |  :Nread scp://host/path         | :Nwrite scp://host/path    | scp  (*1)  |
+  +---------------------------------+----------------------------+------------+
+  | SFTP:                           |                            |            |
+  |  sftp://[user@]host/path        | sftp://[user@]host/path    | sftp       |
+  |  :Nread sftp://host/path        | :Nwrite sftp://host/path   | sftp  (*1) |
+  +=================================+============================+============+
+
+	(*1) For an absolute path use scp://machine//path.
+
+	(*2) if <.netrc> is present, it is assumed that it will
+	work with your ftp client.  Otherwise the script will
+	prompt for user-id and pasword.
+
+        (*3) for ftp, "machine" may be machine#port or machine:port
+	if a different port is needed than the standard ftp port
+
+	(*4) for http:..., if wget is available it will be used.  Otherwise,
+	if fetch is available it will be used.
+
+Both the :Nread and the :Nwrite ex-commands can accept multiple filenames.
+
+
+NETRC							*netrw-netrc*
+
+The typical syntax for lines in a <.netrc> file is given as shown below.
+Ftp under Unix usually support <.netrc>; Windows' ftp usually doesn't.
+>
+	machine {full machine name} login {user-id} password "{password}"
+	default login {user-id} password "{password}"
+
+Your ftp client must handle the use of <.netrc> on its own, but if the
+<.netrc> file exists, an ftp transfer will not ask for the user-id or
+password.
+
+	Note:
+	Since this file contains passwords, make very sure nobody else can
+	read this file!  Most programs will refuse to use a .netrc that is
+	readable for others.  Don't forget that the system administrator can
+	still read the file!
+
+
+PASSWORD						*netrw-passwd*
+
+The script attempts to get passwords for ftp invisibly using |inputsecret()|,
+a built-in Vim function.  See |netrw-uidpass| for how to change the password
+after one has set it.
+
+Unfortunately there doesn't appear to be a way for netrw to feed a password
+to scp.  Thus every transfer via scp will require re-entry of the password.
+
+
+==============================================================================
+3. Activation						*netrw-activate*
+
+Network-oriented file transfers are available by default whenever
+|'nocompatible'| mode is enabled.  The <netrw.vim> file resides in your
+system's vim-plugin directory and is sourced automatically whenever you
+bring up vim.
+
+
+==============================================================================
+4. Transparent File Transfer				*netrw-transparent*
+
+Transparent file transfers occur whenever a regular file read or write
+(invoked via an |:autocmd| for |BufReadCmd| or |BufWriteCmd| events) is made.
+Thus one may use files across networks as if they were local. >
+
+	vim ftp://[user@]machine/path
+	...
+	:wq
+
+
+==============================================================================
+5. Ex Commands						*netrw-ex*
+
+The usual read/write commands are supported.  There are also a couple of
+additional commands available.
+
+:[range]Nw	Write the specified lines to the current
+		file as specified in b:netrw_lastfile.
+
+:[range]Nw {netfile} [{netfile}]...
+		Write the specified lines to the {netfile}.
+
+:Nread
+		Read the specified lines into the current
+		buffer from the file specified in
+		b:netrw_lastfile.
+
+:Nread {netfile} {netfile}...
+		Read the {netfile} after the current line.
+
+									*netrw-uidpass*
+:call NetUserPass()
+		If b:netrw_uid and b:netrw_passwd don't exist,
+		this function query the user for them.
+
+:call NetUserPass("userid")
+		This call will set the b:netrw_uid and, if
+		the password doesn't exist, will query the user for it.
+
+:call NetUserPass("userid","passwd")
+		This call will set both the b:netrw_uid and b:netrw_passwd.
+		The user-id and password are used by ftp transfers.  One may
+		effectively remove the user-id and password by using ""
+		strings.
+
+
+==============================================================================
+6. Variables and Options       			*netrw-options* *netrw-var*
+
+The script <netrw.vim> uses several variables which can affect <netrw.vim>'s
+behavior.  These variables typically may be set in the user's <.vimrc> file:
+>
+                                -------------
+                           	Netrw Options
+                                -------------
+	Option			Meaning
+	--------------		-----------------------------------------------
+<
+        b:netrw_col             Holds current cursor position (during NetWrite)
+        g:netrw_cygwin          =1 assume scp under windows is from cygwin
+                                                              (default/windows)
+                                =0 assume scp under windows accepts windows
+                                   style paths                (default/else)
+        g:netrw_ftp             =0 use default ftp            (uid password)
+        g:netrw_ftpmode         ="binary"                     (default)
+                                ="ascii"                      (your choice)
+	g:netrw_ignorenetrc     =1                            (default)
+	                           if you have a <.netrc> file but you don't
+				   want it used, then set this variable.  Its
+				   mere existence is enough to cause <.netrc>
+				   to be ignored.
+        b:netrw_lastfile        Holds latest method/machine/path.
+        b:netrw_line            Holds current line number     (during NetWrite)
+        g:netrw_passwd          Holds current password for ftp.
+	g:netrw_silent          =0 transfers done normally
+	                        =1 transfers done silently
+        g:netrw_uid             Holds current user-id for ftp.
+                                =1 use alternate ftp          (user uid password)
+                                (see |netrw-options|)
+        g:netrw_use_nt_rcp      =0 don't use WinNT/2K/XP's rcp (default)
+                                =1 use WinNT/2K/XP's rcp, binary mode
+        g:netrw_win95ftp        =0 use unix-style ftp even if win95/98/ME/etc
+                                =1 use default method to do ftp >
+	-----------------------------------------------------------------------
+<
+The script will also make use of the following variables internally, albeit
+temporarily.
+>
+			     -------------------
+			     Temporary Variables
+			     -------------------
+	Variable		Meaning
+	--------		------------------------------------
+<
+	g:netrw_method		Index indicating rcp/ftp+.netrc/ftp
+	g:netrw_machine		Holds machine name parsed from input
+	g:netrw_fname		Holds filename being accessed >
+	------------------------------------------------------------
+<
+								*netrw-protocol*
+
+Netrw supports a number of protocols.  These protocols are invoked using the
+variables listed below, and may be modified by the user.
+>
+			   ------------------------
+                           Protocol Control Options
+			   ------------------------
+    Option            Type        Setting         Meaning
+    ---------         --------    --------------  ---------------------------
+<
+    netrw_ftp         variable    =doesn't exist  userid set by "user userid"
+                                  =0              userid set by "user userid"
+                                  =1              userid set by "userid"
+    NetReadFixup      function    =doesn't exist  no change
+                                  =exists         Allows user to have files
+                                                  read via ftp automatically
+                                                  transformed however they wish
+                                                  by NetReadFixup()
+    g:netrw_dav_cmd    variable   ="cadaver"
+    g:netrw_fetch_cmd  variable   ="fetch -o"
+    g:netrw_ftp_cmd    variable   ="ftp"
+    g:netrw_http_cmd   variable   ="fetch -o" else if fetch is executable
+    g:netrw_http_cmd   variable   ="wget -O"  if      wget  is executable
+    g:netrw_list_cmd   variable   ="ssh HOSTNAME ls -Fa"
+    g:netrw_rcp_cmd    variable   ="rcp"
+    g:netrw_rsync_cmd  variable   ="rsync -a"
+    g:netrw_scp_cmd    variable   ="scp -q"
+    g:netrw_sftp_cmd   variable   ="sftp" >
+    -------------------------------------------------------------------------
+<
+								*netrw-ftp*
+The first two options both help with certain ftp's that give trouble otherwise.
+In order to best understand how to use these options if ftp is giving you
+troubles, a bit of discussion follows on how netrw does ftp reads.
+
+The g:netrw_..._cmd variables specify the external program to use handle
+the associated protocol (rcp, ftp, etc), plus any options.
+
+The g:netrw_list_cmd's HOSTNAME entry will be changed via substitution with
+whatever the current request is for a hostname.
+
+For ftp, netrw typically builds up lines of one of the following formats in a
+temporary file:
+>
+  IF g:netrw_ftp !exists or is not 1     IF g:netrw_ftp exists and is 1
+  ----------------------------------     ------------------------------
+<
+       open machine [port]                    open machine [port]
+       user userid password                   userid password
+       [g:netrw_ftpmode]                      password
+       get filename tempfile                  [g:netrw_ftpmode]
+                                              get filename tempfile >
+  ---------------------------------------------------------------------
+<
+Netrw then executes the lines above by use of a filter:
+>
+	:%! {g:netrw_ftp_cmd} -i [-n]
+<
+
+where
+	g:netrw_ftp_cmd is usually "ftp",
+	-i tells ftp not to be interactive
+	-n means don't use netrc and is used for Method #3 (ftp w/o <.netrc>)
+
+If <.netrc> exists it will be used to avoid having to query the user for
+userid and password.  The transferred file is put into a temporary file.
+The temporary file is then read into the main editing session window that
+requested it and the temporary file deleted.
+
+If your ftp doesn't accept the "user" command and immediately just demands
+a userid, then try putting "let netrw_ftp=1" in your <.vimrc>.
+
+								*netrw-cadaver*
+To handle the SSL certificate dialog for untrusted servers, one may pull
+down the certificate and place it into /usr/ssl/cert.pem.  This operation
+renders the server treatment as "trusted".
+
+							 	*netrw-fixup*
+If your ftp for whatever reason generates unwanted lines (such as AUTH
+messages) you may write a NetReadFixup(tmpfile) function:
+>
+    function! NetReadFixup(method,line1,line2)
+      " a:line1: first new line in current file
+      " a:line2: last  new line in current file
+      if     a:method == 1 "rcp
+      elseif a:method == 2 "ftp + <.netrc>
+      elseif a:method == 3 "ftp + machine,uid,password,filename
+      elseif a:method == 4 "scp
+      elseif a:method == 5 "http/wget
+      elseif a:method == 6 "dav/cadaver
+      elseif a:method == 7 "rsync
+      elseif a:method == 8 "fetch
+      elseif a:method == 9 "sftp
+      else               " complain
+      endif
+    endfunction
+>
+The NetReadFixup() function will be called if it exists and thus allows
+you to customize your reading process.  As a further example, <netrw.vim>
+contains just such a function to handle Windows 95 ftp.  For whatever
+reason, Windows 95's ftp dumps four blank lines at the end of a transfer,
+and so it is desirable to automate their removal.  Here's some code taken
+from <netrw.vim> itself:
+>
+    if has("win95") && g:netrw_win95ftp
+     fun! NetReadFixup(method, line1, line2)
+       if method == 3   " ftp (no <.netrc>)
+        let fourblanklines= line2 - 3
+        silent fourblanklines.",".line2."g/^\s*/d"
+       endif
+     endfunction
+    endif
+>
+
+==============================================================================
+7. Directory Browser	*netrw-browse* *netrw-dir* *netrw-list* *netrw-help*
+     ?..........Help....................................|netrw-help|
+     <cr>.......Browsing................................|netrw-cr|
+     <del>......Deleting Files or Directories...........|netrw-delete|
+     -..........Going Up................................|netrw--|
+     a..........Hiding Files or Directories.............|netrw-a|
+     b..........Bookmarking a Directory.................|netrw-b|
+     B..........Changing to a Bookmarked Directory......|netrw-B|
+     c..........Make Browsing Directory The Current Dir.|netrw-c|
+     d..........Make A New Directory....................|netrw-d|
+     D..........Deleting Files or Directories...........|netrw-D|
+     <c-h>......Edit File/Directory Hiding List.........|netrw-h|
+     i..........Long Listing............................|netrw-i|
+     <c-l>......Refreshing the Listing..................|netrw-ctrl-l|
+     o..........Browsing with a Horizontal Split........|netrw-o|
+     p..........Preview Window..........................|netrw-p|
+     q..........Listing Bookmarks.......................|netrw-q|
+     r..........Reversing Sorting Order.................|netrw-r|
+     R..........Renaming Files or Directories...........|netrw-R|
+     s..........Selecting Sorting Style.................|netrw-s|
+     S..........Editing the Sorting Sequence............|netrw-S|
+     v..........Browsing with a Vertical Split..........|netrw-v|
+     x..........Customizing Browsing....................|netrw-x|
+
+QUICK REFERENCE COMMANDS TABLE     			*netrw-browse-cmds*
+>
+        -------	-----------
+	Command	Explanation
+        -------	-----------
+<          ?	Causes Netrw to issue help
+	 <cr>	Netrw will enter the directory or read the file
+	 <del>	Netrw will attempt to remove the file/directory
+	   d	Make a directory
+	   D	Netrw will attempt to remove the file(s)/directory(ies)
+	   R	Netrw will attempt to rename the file(s)/directory(ies)
+	   -	Makes Netrw go up one directory
+	   a	Toggles between normal display,
+	    	hiding (suppress display of files matching g:netrw_list_hide)
+	    	showing (display only files which match g:netrw_list_hide)
+	   c	Make current browsing directory the current directory
+	 <c-h>	Edit file hiding list
+	   i	Toggles between long and short listing
+	 <c-l>	Causes Netrw to refresh the directory listing
+	   o	Enter the file/directory under the cursor in a new browser
+	   	window.  A horizontal split is used.
+	   r	Reverse sorting order
+	   s	Select sorting style: by name, time, or file size
+	   v	Enter the file/directory under the cursor in a new browser
+	   	window.  A vertical split is used.
+	   x	Apply a function to a file.
+
+NETRW BROWSER VARIABLES					*netrw-browse-var*
+>
+	---				-----------
+	Var				Explanation
+	---				-----------
+<	g:netrw_alto			change from above splitting to
+					below splitting by setting this
+					variable (see |netrw-o|)
+	g:netrw_altv			change from left splitting to
+					right splitting by setting this
+					variable (see |netrw-v|)
+	g:netrw_ftp_browse_reject	ftp can produce a number of errors
+					and warnings that can show up as
+					"directories" and "files" in the
+					listing.  This pattern is used to
+					remove such embedded messages.
+	g:netrw_keepdir			keep current directory immune from the
+					browsing directory.  The browsing
+					directory is contained in b:netrw_curdir
+	g:netrw_list_cmd		command for listing remote directories
+	g:netrw_ftp_list_cmd		options for passing along to ftp for
+					directory listing.  Defaults:
+					 unix or g:netrw_cygwin set: : "ls -lF"
+					 otherwise                     "dir"
+	g:netrw_list_hide		comma separated list of patterns for
+					hiding files
+	g:netrw_local_mkdir		command for making a local directory
+	g:netrw_local_rmdir		remove directory command (rmdir)
+	g:netrw_local_rename		rename file/directory command
+					unix-default: rm    win32-default: ren
+	g:netrw_mkdir_cmd		command for making a remote directory
+	g:netrw_rm_cmd			command for removing files
+	g:netrw_rmdir_cmd		command for removing directories
+	g:netrw_rmf_cmd			command for removing softlinks
+	g:netrw_hide			if true, the hiding list is used
+	g:netrw_sort_by			sort by "name", "time", or "size"
+	g:netrw_sort_direction		sorting direction: "normal" or "reverse"
+	g:netrw_sort_sequence		when sorting by name, first sort by the
+					comma-separated pattern sequence
+	g:netrw_timefmt			specify format string to strftime() (%c)
+	g:netrw_winsize			specify initial size of new o/v windows
+
+INTRODUCTION TO DIRECTORY BROWSING
+
+Netrw supports the browsing of directories on the local system and on remote
+hosts, including generating listing directories, entering directories, editing
+files therein, deleting files/directories, making new directories, and moving
+(renaming) files and directories.  The Netrw browser generally implements the
+previous explorer maps and commands for remote directories, although details
+(such as pertinent global variable names) necessarily differ.
+
+The Netrw remote file and directory browser handles two protocols: ssh and
+ftp.  The protocol in the url, if it is ftp, will cause netrw to use ftp
+in its remote browsing.  Any other protocol will be used for file transfers,
+but otherwise the ssh protocol will be used to do remote directory browsing.
+
+To enter the netrw directory browser, simply attempt to read a "file" with a
+trailing slash and it will be interpreted as a request to list a directory:
+
+	vim [protocol]://[user@]hostname/path/
+
+If you'd like to avoid entering the password in for directory listings, scp,
+ssh interaction, etc, see |netrw-list-hack|.
+
+REFRESHING THE LISTING					*netrw-ctrl-l*
+
+To refresh either a local or remote directory listing, press ctrl-l (<c-l>) or
+hit the <cr> when atop the ./ directory entry in the listing.  One may also
+refresh a local directory by using ":e .".
+
+
+GOING UP						*netrw--*
+
+To go up a directory, press - or his the <cr> when atop the ../ directory
+entry in the listing.
+
+Netrw will modify the command in *g:netrw_list_cmd* to perform the directory
+listing operation.  By default the command is:
+
+	ssh HOSTNAME ls -FLa
+
+where the HOSTNAME becomes the [user@]hostname as requested by the attempt to
+read.  Naturally, the user may override this command with whatever is
+preferred.  The NetList function which implements remote directory browsing
+expects that directories will be flagged by a trailing slash.
+
+
+BROWSING 							*netrw-cr*
+
+Browsing is simple: move the cursor onto a file or directory of interest.
+Hitting the <cr> (the return key) will select the file or directory.
+Directories will themselves be listed, and files will be opened using the
+protocol given in the original read request.
+
+LONG VS SHORT LISTING						*netrw-i*
+
+The short listing format gives just the files' and directories' names.
+The long listing is either based on the "ls" command via ssh for remote
+directories or displays the filename, file size (in bytes), and the
+time and date of last modification for local directories.
+
+
+MAKING A NEW DIRECTORY						*netrw-d*
+
+With the "d" map one may make a new directory either remotely (which
+depends on the global variable g:netrw_mkdir_cmd) or locally (which depends on
+the global variable g:netrw_local_mkdir).  Netrw will issue a request for the
+new directory's name.  A bare <CR> at that point will abort the making of the
+directory.  Attempts to make a local directory that already exists (as either
+a file or a directory) will be detected, reported on, and ignored.
+
+DELETING FILES OR DIRECTORIES			*netrw-delete* *netrw-D*
+
+Deleting/removing files and directories involves moving the cursor to the
+file/directory to be deleted and pressing "D".  Directories must be empty first
+before they can be successfully removed.  If the directory is a softlink to a
+directory, then netrw will make two requests to remove the directory before
+succeeding.  Netrw will ask for confirmation before doing the removal(s).
+You may select a range of lines with the "V" command (visual selection),
+and then pressing "D".
+
+							*g:netrw_rm_cmd*
+The g:netrw_rm_cmd, g:netrw_rmf_cmd, and g:netrw_rmdir_cmd variables are used
+to control the attempts to remove files and directories.  The g:netrw_rm_cmd
+is used with files, and its default value is:
+
+	g:netrw_rm_cmd: ssh HOSTNAME rm
+
+							*g:netrw_rmdir_cmd*
+The g:netrw_rmdir_cmd variable is used to support the removal of directories.
+Its default value is:
+
+	g:netrw_rmdir_cmd: ssh HOSTNAME rmdir
+
+							*g:netrw_rmf_cmd*
+If removing a directory fails with g:netrw_rmdir_cmd, netrw then will attempt
+to remove it again using the g:netrw_rmf_cmd variable.  Its default value is:
+
+	g:netrw_rmf_cmd: ssh HOSTNAME rm -f
+
+
+RENAMING FILES OR DIRECTORIES		*netrw-move* *netrw-rename* *netrw-R*
+
+Renaming/moving files and directories involves moving the cursor to the
+file/directory to be moved (renamed) and pressing "R".  You will then be
+queried for where you want the file/directory to be moved.  You may select a
+range of lines with the "V" command (visual selection), and then pressing "R".
+
+The g:netrw_rename_cmd variable is used to implement renaming.  By default its
+value is:
+
+	ssh HOSTNAME mv
+
+One may rename a block of files and directories by selecting them with
+the V (|linewise-visual|).
+
+
+HIDING FILES OR DIRECTORIES		*g:netrw-a* *g:netrw_list_hide*
+
+Netrw's browsing facility allows one to use the hiding list in one of
+three ways: ignore it, hide files which match, and show only those files
+which match.  The g:netrw_list_hide variable holds a comma delimited list
+of patterns (ex. \.obj) which specify the hiding list. (also see |netrw-h|)
+
+
+EDIT FILE OR DIRECTORY HIDING LIST				*netrw-h*
+
+The "<ctrl-h>" map brings up a requestor allowing the user to change the
+file/directory hiding list.  The hiding list consists of one or more patterns
+delimited by commas.  Files and/or directories satisfying these patterns will
+be hidden (ie. not shown).
+
+
+BROWSING WITH A HORIZONTALLY SPLIT WINDOW			*netrw-o*
+
+Normally one enters a file or directory using the <cr>.  However, the "o" map
+allows one to open a new window to hold the new directory listing or file.  A
+horizontal split is used.  (for vertical splitting, see |netrw-v|)
+
+Normally, the o key splits the window horizontally with the new window
+and cursor at the top.  To change to splitting the window horizontally
+with the new window and cursor at the bottom, have
+
+	let g:netrw_alto = 1
+
+in your <.vimrc>.
+
+PREVIEW WINDOW
+
+One may use a preview window (currently only for local browsing) by using
+the "p" key when the cursor is atop the desired filename to be previewed.
+
+
+SELECTING SORTING STYLE						*netrw-s*
+
+One may select the sorting style by name, time, or (file) size.  The
+"s" map allows one to circulate among the three choices; the directory
+listing will automatically be refreshed to reflect the selected style.
+
+
+EDITING THE SORTING SEQUENCE					*netrw-S*
+
+When "Sorted by" is name, one may specify priority via the sorting
+sequence (g:netrw_sort_sequence).  The sorting sequence typically
+prioritizes the name-listing by suffix, although any pattern will do.
+Patterns are delimited by commas.  The default sorting sequence is:
+>
+	/$,*,\.bak$,\.o$,\.h$,\.info$,\.swp$,\.obj$
+<
+The lone * is where all filenames not covered by one of the other
+patterns will end up.  One may change the sorting sequence by modifying
+the g:netrw_sort_sequence variable (either manually or in your <.vimrc>)
+or by using the "S" map.
+
+
+REVERSING SORTING ORDER						*netrw-r*
+
+One may toggle between normal and reverse sorting order by pressing the
+"r" key.
+
+
+BROWSING WITH A VERTICALLY SPLIT WINDOW				*netrw-v*
+
+Normally one enters a file or directory using the <cr>.  However, the "v"
+map allows one to open a new window to hold the new directory listing or
+file.  A vertical split is used.  (for horizontal splitting, see |netrw-o|)
+
+Normally, the v key splits the window vertically with the new window
+and cursor at the left.  To change to splitting the window vertically
+with the new window and cursor at the right, have
+
+	let g:netrw_altv = 1
+
+in your <.vimrc>.
+
+
+CUSTOMIZING BROWSING WITH A USER FUNCTION			*netrw-x*
+
+One may "enter" a file with a special handler, thereby firing up a browser or
+other application, for example, on a file by hitting the "x" key.  Presumably
+one could write handlers that would start OpenOffice programs (oowriter), etc,
+based on the file's extension coupled with the user's hitting the "x" key atop
+the file.
+
+The Netrw executor applies a user-defined function to a file, based on its
+extension.  Of course, the handler function must exist for it to be called!
+>
+ Ex. mypgm.html   x ->
+                  NetrwFileHandler_html("scp://user@host/some/path/mypgm.html")
+<
+See the <plugin/NetrwFileHandlers.vim> for an example of how to handle an html
+file with mozilla.
+
+
+MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY		*netrw-c*
+
+By default, g:netrw_keepdir is 0.  This setting means that the current
+directory will track the browsing directory.  However, setting g:netrw_keepdir
+to 1 (say, in your <.vimrc>) will keep the current directory independent
+of the browsing directory.  In that case, in order to make the two
+directories the same, use the "c" map (just type c).
+
+
+BOOKMARKING A DIRECTORY						*netrw-b*
+
+One may easily "bookmark" a directory by using
+
+	{cnt}b
+
+Any count may be used.
+
+
+CHANGING TO A BOOKMARKED DIRECTORY				*netrw-B*
+
+To change directory back to a bookmarked directory, use
+
+	{cnt}B
+
+Any count may be used.
+
+
+LISTING BOOKMARKS						*netrw-q*
+
+Pressing "q" will list the bookmarked directories. (query)
+
+
+IMPROVING DIRECTORY BROWSING				*netrw-list-hack*
+
+Especially with the remote directory browser, constantly entering the password
+is tedious.
+
+For Linux/Unix systems, I suggest looking into
+
+	http://hacks.oreilly.com/pub/h/66
+
+It gives a tip for setting up password-less use of ssh and scp, and discusses
+the associated security issues.
+
+
+==============================================================================
+8. Problems and Fixes						*netrw-problems*
+
+	(This section is likely to grow as I get feedback)
+	(also see |netrw-debug|)
+
+	P1. I use windows 95, and my ftp dumps four blank lines at the
+	    end of every read.
+
+		See |netrw-fixup|, and put the following into your
+		<.vimrc> file:
+
+			let g:netrw_win95ftp= 1
+		
+		
+
+	P2. I use windows, and my network browsing with ftp doesn't sort by
+	    time or size
+
+		Windows' ftp has a minimal support for ls (ie. it doesn't
+		accept sorting options).  It doesn't support the -F which
+		gives an explanatory character (ABC/ for "ABC is a directory").
+		Netrw uses dir to get its short and long listings.  If you
+		think your ftp does support a full-up ls, put the following
+		into your <.vimrc>:
+
+			let g:netrw_ftp_list_cmd= "ls -lF"
+
+		Alternatively, if you have cygwin on your Windows box, put
+		into your <.vimrc>:
+
+			let g:netrw_cygwin= 1
+
+	P3. I tried rcp://user@host/ (or protocol other than ftp) and netrw
+	    used ssh!  That wasn't what I asked for...
+
+		Netrw has two methods for browsing remote directories: ssh
+		and ftp.  Unless you specify ftp specifically, ssh is used.
+		When it comes time to do download a file (not just a directory
+		listing), netrw will use the given protocol to do so.
+
+	P4. I would like long listings to be the default.
+
+		let g:netrw_longlist=1
+
+	P5. My times come up oddly in local browsing
+
+		Does your system's strftime() accept the "%c" to yield dates
+		such as "Sun Apr 27 11:49:23 1997"?  If not, do a "man strftime"
+		and find out what option should be used.  Then put it into
+		your <.vimrc>:
+			let g:netrw_timefmt= "%X"  (where X is the option)
+
+	P6. I don't want my current directory changing just because I'm
+	    browsing somewhere.
+
+	    	let g:netrw_keepdir= 1
+	
+
+==============================================================================
+9. Debugging						*netrw-debug*
+
+The <netrw.vim> script is typically available as:
+
+	/usr/local/share/vim/vim6x/plugin/netrw.vim
+
+which is loaded automatically at startup (assuming :set nocp).
+
+	1. Get the <Decho.vim> script, available as:
+
+		http://mysite.verizon.net/astronaut/vim/index.html#vimlinks_scripts
+		as "Decho, a vimL debugging aid"
+	   or
+		http://vim.sourceforge.net/scripts/script.php?script_id=120
+
+	   and put it into your local plugin directory.
+	
+	2. <Decho.vim> itself needs the <cecutil.vim> script, so you'll need
+	   to put it into your .vim/plugin, too.  You may obtain it from:
+
+		http://mysite.verizon.net/astronaut/vim/index.html#VimFuncs
+		as "DrC's Utilities"
+
+	3. Edit the <netrw.vim> file by typing:
+
+		vim netrw.vim
+		:DechoOn
+		:wq
+
+	   To restore to normal non-debugging behavior, edit <netrw.vim>
+	   by typing
+
+		vim netrw.vim
+		:DechoOff
+		:wq
+
+	   This command, provided by <Decho.vim>, will comment out all
+	   Decho-debugging statements (Dfunc(), Dret(), Decho(), Dredir()).
+
+	4. Then bring up vim and attempt a transfer.  A set of messages
+	   should appear concerning the steps that <netrw.vim> took in
+	   attempting to read/write your file over the network.  Please
+	   send that information to <netrw.vim>'s maintainer,
+
+		drchipNOSPAM at campbellfamily.biz - NOSPAM
+
+==============================================================================
+10. History						*netrw-history*
+
+	v48: * One may use ftp to do remote host file browsing
+	     * (windows and !cygwin) remote browsing with ftp can now use
+	       the "dir" command internally to provide listings
+	     * g:netrw_keepdir now allows one to keep the initial current
+	       directory as the current directory (normally the local
+	       file browser makes the currently viewed directory the
+	       current directory)
+	     * g:netrw_alto and g:netrw_altv now support alternate placement
+	       of windows started with o or v
+	     * Nread ? and Nwrite ?  now uses echomsg (instead of echo) so
+	       :messages can repeat showing the help
+	     * bugfix: avoids problems with partial matches of directory names
+	       to prior buffers with longer names
+	     * one can suppress error messages with g:netrw_quiet
+	     * ctrl-h used instead of <Leader>h for editing hiding list
+	     * one may edit the sorting sequence with the S map
+	     * now allows confirmation of deletion with [y(es) n(o) a(ll) q(uit)]
+	     * the "x" map now handles special file viewing with:
+	       (windows) rundll32 url.dll
+	       (gnome)   gnome-open
+	       (kde)     kfmclient
+	       If none of these are on the executable path, then
+	       NetrwFileHandlers.vim is used.
+	     * directory bookmarking during both local and remote browsing
+	       implemented
+	     * one may view all, use the hiding list to suppress, or use the
+	       hiding list to show-only remote and local file/directory listings
+	     * improved unusual file and directory name handling
+	     * preview window support
+	v47: * now handles local directory browsing.
+	v46: * now handles remote directory browsing
+	     * g:netrw_silent (if 1) will cause all transfers to be silent'd
+	v45: * made the [user@]hostname:path form a bit more restrictive
+	       to better handle errors in using protocols
+	       (e.g. scp:usr@host:file was being recognized as an rcp request)
+	v44: * changed from "rsync -a" to just "rsync"
+	     * somehow an editing error messed up the test to recognize
+	       use of the fetch method for NetRead.
+	     * more debugging statements included
+	v43: * moved "Explanation" comments to <pi_netrw.txt> help file
+	       as "Network Reference" (|netrw-ref|)
+	     * <netrw.vim> now uses Dfunc() Decho() and Dret() for debugging
+	     * removed superfluous NetRestorePosn() calls
+	v42: * now does BufReadPre and BufReadPost events on file:///*
+	       and file://localhost/*
+	v41: * installed file:///* and file://localhost/* handling
+	v40: * prevents redraw when a protocol error occurs so that the
+	       user may see it
+	v39: * sftp support
+	v38: * Now uses NetRestorePosn() calls with Nread/Nwrite commands
+	     * Temporary files now removed via bwipe! instead of bwipe
+	       (thanks to Dave Roberts)
+	v37: * Claar's modifications which test if ftp is successful, otherwise
+	       give an error message
+	     * After a read, the alternate file was pointing to the temp file.
+	       The temp file buffer is now wiped out.
+	     * removed silent from transfer methods so user can see what's
+	       happening
+
+
+==============================================================================
+11. Credits						*netrw-credits*
+
+	Vim editor	by Bram Moolenaar (Thanks, Bram!)
+	dav		support by C Campbell
+	fetch		support by Bram Moolenaar and C Campbell
+	ftp		support by C Campbell <NdrOchip@ScampbellPfamily.AbizM> - NOSPAM
+	http		support by Bram Moolenaar <bram@moolenaar.net>
+	rcp
+	rsync		support by C Campbell (suggested by Erik Warendorph)
+	scp		support by raf <raf@comdyn.com.au>
+	sftp		support by C Campbell
+
+	inputsecret(), BufReadCmd, BufWriteCmd contributed by C Campbell
+
+	Jérôme Augé		-- also using new buffer method with ftp+.netrc
+	Bram Moolenaar		-- obviously vim itself, :e and v:cmdarg use, fetch,...
+	Yasuhiro Matsumoto	-- pointing out undo+0r problem and a solution
+	Erik Warendorph		-- for several suggestions (g:netrw_..._cmd
+				   variables, rsync etc)
+	Doug Claar		-- modifications to test for success with ftp operation
+
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:

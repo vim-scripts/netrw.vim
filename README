@@ -1,0 +1,73 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1075
+
+                STARTING WITH v66, NETRW REQUIRES VIM 7.0
+
+Netrw supports reading and writing files across networks.  One may use urls for filenames or one may use netrw's Nread and Nwrite commands. Netrw as provided here supports remote and local directory browsing, and supports  editing files across the network using a variety of methods.  Please report any bugs to NdrOchip@ScampbellPfamily.AbizM - NOSPAM.
+
+    Example:  vim ftp://user@machine/path
+
+(the following table should be columnar if fixed-width fonts are used in your browser)
+
+    REMOTE EDITING
+        :e dav://machine[:port]/path                      uses cadaver
+        :e fetch://[user@]machine/path                  uses fetch
+        :e ftp://[user@]machine[[:#]port]/path          uses ftp   autodetects <.netrc>
+        :e http://[user@]machine/path                    uses http  uses wget
+        :e rcp://[user@]machine/path                     uses rcp
+        :e rsync://[user@]machine[:port]/path         uses rsync
+        :e scp://[user@]machine[[:#]port]/path        uses scp
+        :e sftp://[user@]machine/path                    uses sftp
+
+    REMOTE READING
+        :Nread ?                                                     give help
+        :Nread "machine:path"                                 uses rcp
+        :Nread "machine path"                                 uses ftp   with <.netrc>
+        :Nread "machine id password path"              uses ftp
+        :Nread "dav://machine[:port]/path"                uses cadaver
+        :Nread "fetch://[user@]machine/path"            uses fetch
+        :Nread "ftp://[user@]machine[[:#]port]/path"    uses ftp   autodetects <.netrc>
+        :Nread "http://[user@]machine/path"              uses http  uses wget
+        :Nread "rcp://[user@]machine/path"               uses rcp
+        :Nread "rsync://[user@]machine[:port]/path"   uses rsync
+        :Nread "scp://[user@]machine[[:#]port]/path"  uses scp
+        :Nread "sftp://[user@]machine/path"             uses sftp
+
+    REMOTE WRITING
+        :Nwrite ?                                                      give help
+        :Nwrite "machine:path"                                  uses rcp
+        :Nwrite "machine path"                                  uses ftp   with <.netrc>
+        :Nwrite "machine id password path"               uses ftp
+        :Nwrite "dav://machine[:port]/path"                  uses cadaver
+        :Nwrite "ftp://[user@]machine[[:#]port]/path"     uses ftp   autodetects <.netrc>
+        :Nwrite "rcp://[user@]machine/path"                uses rcp
+        :Nwrite "rsync://[user@]machine[:port]/path"    uses rsync
+        :Nwrite "scp://[user@]machine[[:#]port]/path"   uses scp
+        :Nwrite "sftp://[user@]machine/path"               uses sftp
+        http: not supported!
+
+    REMOTE DIRECTORY BROWSING
+        :e [protocol]://[user]@hostname/path/
+        :Nread [protocol]://[user]@hostname/path/
+
+    LOCAL DIRECTORY BROWSING
+        :e /some/path/to/a/directory
+
+Netrw supports browsing both local and remote directories.  For remote directory browsing, one must include a trailing slash (/) on the path!  The interface resembles the file explorer that comes with vim v6.3 and earlier.  Variables which control netrw's optional behavior are named differently, however.
+
+For remote directory browsing, the [protocol]://[user]@hostname/path/ is user-directory relative.  If you want to specify a full path, use another slash before the path: [protocol]://[user]@hostname//path/.
+
+Netrw supports many file-explorer maps, such as o v d D etc.  Look at the help for netrw-o, for example.  One may also use :Explore and relatives to explore directories with the current file.
+
+The netrw.vba.gz vimball supports the "x" key to execute a file handler for various filetypes.  The file-handling is done in various ways:
+
+    * Under Windows, rundll32 is used with the FileProtocolHandler
+    * If unix and kfmclient exists and is executable, it is used
+    * If unix and gnome-open exists and is executable, it is used
+    * Otherwise, the NetrwFileHandler.vim file handling script is used
+
+With this feature, one may press the "x" key when the cursor is atop a filename and invoke an extension-based file handler to do things like display image files, invoke ghostscript on PostScript files, run OpenOffice or Word, etc.
+
+RECENT NETRWs REQUIRE VIM V7.2
+
+(alpha/beta version available at http://mysite.verizon.net/astronaut/vim/index.html#NETRW)
+
