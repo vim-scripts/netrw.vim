@@ -1,4 +1,4 @@
-*pi_netrw.txt  For Vim version 6.2.  Last change: Sep 10, 2004
+*pi_netrw.txt*  For Vim version 6.3.  Last change: Oct 08, 2004
 
 
 		VIM REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -536,11 +536,13 @@ from <netrw.vim> itself:
      <c-l>......Refreshing the Listing..................|netrw-ctrl-l|
      o..........Browsing with a Horizontal Split........|netrw-o|
      p..........Preview Window..........................|netrw-p|
-     q..........Listing Bookmarks.......................|netrw-q|
+     q..........Listing Bookmarks and History...........|netrw-q|
      r..........Reversing Sorting Order.................|netrw-r|
      R..........Renaming Files or Directories...........|netrw-R|
      s..........Selecting Sorting Style.................|netrw-s|
      S..........Editing the Sorting Sequence............|netrw-S|
+     u..........Changing to a Predecessor Directory.....|netrw-u|
+     U..........Changing to a Successor Directory.......|netrw-U|
      v..........Browsing with a Vertical Split..........|netrw-v|
      x..........Customizing Browsing....................|netrw-x|
 
@@ -587,10 +589,14 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 					"directories" and "files" in the
 					listing.  This pattern is used to
 					remove such embedded messages.
-	g:netrw_keepdir			keep current directory immune from the
-					browsing directory.  The browsing
-					directory is contained in b:netrw_curdir
+	g:netrw_keepdir			=1 (default) keep current directory
+					immune from the browsing directory.
+					=0 keep the current directory the
+					same as the browsing directory.
+					The browsing directory is contained in
+					b:netrw_curdir
 	g:netrw_list_cmd		command for listing remote directories
+	g:netrw_longlist		if =1, then long listing will be default
 	g:netrw_ftp_list_cmd		options for passing along to ftp for
 					directory listing.  Defaults:
 					 unix or g:netrw_cygwin set: : "ls -lF"
@@ -601,6 +607,12 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 	g:netrw_local_rmdir		remove directory command (rmdir)
 	g:netrw_local_rename		rename file/directory command
 					unix-default: rm    win32-default: ren
+	g:netrw_maxfilenamelen		=32 by default, selected so as to make
+					long listings fit on 80 column displays.
+					If your screen is wider, and you have
+					file/directory names longer than 32 bytes,
+					you may set this option to keep listings
+					columnar.
 	g:netrw_mkdir_cmd		command for making a remote directory
 	g:netrw_rm_cmd			command for removing files
 	g:netrw_rmdir_cmd		command for removing directories
@@ -792,6 +804,22 @@ One may toggle between normal and reverse sorting order by pressing the
 "r" key.
 
 
+CHANGING TO A PREDECESSOR DIRECTORY				*netrw-u*
+
+Every time you change to a new directory (new for the current session),
+netrw will save the directory in a recently-visited directory history
+list (unless g:netrw_dirhistmax is zero; by default, its ten).  With the
+"u" map, one can change to an earlier directory (predecessor).  To do
+the opposite, see |netrw-U|.
+
+
+CHANGING TO A SUCCESSOR DIRECTORY				*netrw-U*
+
+With the "U" map, one can change to a later directory (successor).
+This map is the opposite of the "u" map. (see |netrw-u|)  Use the
+q map to list both the bookmarks and history. (see |netrw-q|)
+
+
 BROWSING WITH A VERTICALLY SPLIT WINDOW				*netrw-v*
 
 Normally one enters a file or directory using the <cr>.  However, the "v"
@@ -825,22 +853,27 @@ See the <plugin/NetrwFileHandlers.vim> for an example of how to handle an html
 file with mozilla.
 
 
-MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY		*netrw-c*
+MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY	*netrw-c* *netrw-curdir*
 
-By default, g:netrw_keepdir is 0.  This setting means that the current
-directory will track the browsing directory.  However, setting g:netrw_keepdir
-to 1 (say, in your <.vimrc>) will keep the current directory independent
-of the browsing directory.  In that case, in order to make the two
-directories the same, use the "c" map (just type c).
+By default, g:netrw_keepdir is 1.  This setting means that the current
+directory will not track the browsing directory.  However, setting
+g:netrw_keepdir to 0 (say, in your <.vimrc>) will tell netrw to have the
+currently browsed directory be the current directory.
+
+With the default setting for g:netrw_keepdir, in order to make the two
+directories the same, use the "c" map (just type c).  That map will set
+the current directory to the current browsing directory.
 
 
-BOOKMARKING A DIRECTORY						*netrw-b*
+BOOKMARKING A DIRECTORY		*netrw-b* *netrw-bookmark* *netrw-bookmarks*
 
 One may easily "bookmark" a directory by using
 
 	{cnt}b
 
-Any count may be used.
+Any count may be used.  One may use viminfo's "!" option to retain bookmarks
+between vim sessions.  See |netrw-B| for how to return to a bookmark and
+|netrw-q| for how to list them.
 
 
 CHANGING TO A BOOKMARKED DIRECTORY				*netrw-B*
@@ -849,12 +882,14 @@ To change directory back to a bookmarked directory, use
 
 	{cnt}B
 
-Any count may be used.
+Any count may be used to reference any of the bookmarks.  See |netrw-b|
+for how to bookmark a directory and |netrw-q| for how to list them.
 
 
-LISTING BOOKMARKS						*netrw-q*
+LISTING BOOKMARKS AND HISTORY					*netrw-q*
 
-Pressing "q" will list the bookmarked directories. (query)
+Pressing "q" will list the bookmarked directories and directory traversal
+history (query). (see |netrw-b|, |netrw-B|, |netrw-u|, and |netrw-U|)
 
 
 IMPROVING DIRECTORY BROWSING				*netrw-list-hack*
@@ -913,7 +948,10 @@ the associated security issues.
 
 	P4. I would like long listings to be the default.
 
-		let g:netrw_longlist=1
+			let g:netrw_longlist=1
+
+		Check out |netrw-browse-var| for more customizations that
+		you can set.
 
 	P5. My times come up oddly in local browsing
 
@@ -923,10 +961,10 @@ the associated security issues.
 		your <.vimrc>:
 			let g:netrw_timefmt= "%X"  (where X is the option)
 
-	P6. I don't want my current directory changing just because I'm
-	    browsing somewhere.
+	P6. I want my current directory to track my browsing.
+	    How do I do that?
 
-	    	let g:netrw_keepdir= 1
+	    	let g:netrw_keepdir= 0
 	
 
 ==============================================================================
@@ -979,60 +1017,75 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 10. History						*netrw-history*
 
-	v48: * One may use ftp to do remote host file browsing
+	v51: * cygwin detection now automated (using windows and &shell is bash)
+	     * customizable browser "file" rejection patterns
+	     * directory history
+	     * :[range]w url  now supported (ie. netrw has a FileWriteCmd event)
+	     * error messages have a "Press <cr> to continue" to allow them
+	       to be seen
+	     * directory browser displays no longer bother the swapfile
+	     * u/U commands to go up and down the history stack
+	     * history stack may be saved with viminfo with its "!" option
+	     * bugfixes associated with unwanted [No Files] entries
+	v50: * directories now displayed using buftype=nofile; should keep the
+	       directory names as-is
+	     * attempts to remove empty "[No File]" buffers leftover
+	       from :file ..name.. commands
+	     * bugfix: a "caps-lock" editing difficulty left in v49 was fixed
+	     * syntax highlighting for "Showing:" the hiding list included
+	     * bookmarks can now be retained if "!" is in the viminfo option
+	v49: * will use ftp for http://.../ browsing v48:
+	     * One may use ftp to do remote host file browsing
 	     * (windows and !cygwin) remote browsing with ftp can now use
 	       the "dir" command internally to provide listings
 	     * g:netrw_keepdir now allows one to keep the initial current
-	       directory as the current directory (normally the local
-	       file browser makes the currently viewed directory the
-	       current directory)
+	       directory as the current directory (normally the local file
+	       browser makes the currently viewed directory the current
+	       directory)
 	     * g:netrw_alto and g:netrw_altv now support alternate placement
 	       of windows started with o or v
 	     * Nread ? and Nwrite ?  now uses echomsg (instead of echo) so
 	       :messages can repeat showing the help
 	     * bugfix: avoids problems with partial matches of directory names
 	       to prior buffers with longer names
-	     * one can suppress error messages with g:netrw_quiet
-	     * ctrl-h used instead of <Leader>h for editing hiding list
-	     * one may edit the sorting sequence with the S map
-	     * now allows confirmation of deletion with [y(es) n(o) a(ll) q(uit)]
-	     * the "x" map now handles special file viewing with:
-	       (windows) rundll32 url.dll
-	       (gnome)   gnome-open
-	       (kde)     kfmclient
-	       If none of these are on the executable path, then
+	     * one can suppress error messages with g:netrw_quiet ctrl-h used
+	     * instead of <Leader>h for editing hiding list one may edit the
+	     * sorting sequence with the S map now allows confirmation of
+	     * deletion with [y(es) n(o) a(ll) q(uit)] the "x" map now handles
+	     * special file viewing with:
+	       (windows) rundll32 url.dll (gnome)   gnome-open (kde)
+	       kfmclient If none of these are on the executable path, then
 	       NetrwFileHandlers.vim is used.
 	     * directory bookmarking during both local and remote browsing
 	       implemented
 	     * one may view all, use the hiding list to suppress, or use the
-	       hiding list to show-only remote and local file/directory listings
-	     * improved unusual file and directory name handling
-	     * preview window support
-	v47: * now handles local directory browsing.
-	v46: * now handles remote directory browsing
+	       hiding list to show-only remote and local file/directory
+	       listings
+	     * improved unusual file and directory name handling preview
+	     * window support
+	v47: * now handles local directory browsing.  v46: * now handles
+	remote directory browsing
 	     * g:netrw_silent (if 1) will cause all transfers to be silent'd
-	v45: * made the [user@]hostname:path form a bit more restrictive
-	       to better handle errors in using protocols
-	       (e.g. scp:usr@host:file was being recognized as an rcp request)
-	v44: * changed from "rsync -a" to just "rsync"
+	v45: * made the [user@]hostname:path form a bit more restrictive to
+	       better handle errors in using protocols (e.g. scp:usr@host:file
+	       was being recognized as an rcp request) v44: * changed from
+	       "rsync -a" to just "rsync"
 	     * somehow an editing error messed up the test to recognize
 	       use of the fetch method for NetRead.
 	     * more debugging statements included
-	v43: * moved "Explanation" comments to <pi_netrw.txt> help file
-	       as "Network Reference" (|netrw-ref|)
+	v43: * moved "Explanation" comments to <pi_netrw.txt> help file as
+	       "Network Reference" (|netrw-ref|)
 	     * <netrw.vim> now uses Dfunc() Decho() and Dret() for debugging
 	     * removed superfluous NetRestorePosn() calls
-	v42: * now does BufReadPre and BufReadPost events on file:///*
-	       and file://localhost/*
-	v41: * installed file:///* and file://localhost/* handling
-	v40: * prevents redraw when a protocol error occurs so that the
-	       user may see it
-	v39: * sftp support
-	v38: * Now uses NetRestorePosn() calls with Nread/Nwrite commands
+	v42: * now does BufReadPre and BufReadPost events on file:///* and
+	       file://localhost/* v41: * installed file:///* and
+	       file://localhost/* handling v40: * prevents redraw when a
+	       protocol error occurs so that the user may see it v39: * sftp
+	       support v38: * Now uses NetRestorePosn() calls with
+	       Nread/Nwrite commands
 	     * Temporary files now removed via bwipe! instead of bwipe
-	       (thanks to Dave Roberts)
-	v37: * Claar's modifications which test if ftp is successful, otherwise
-	       give an error message
+	       (thanks to Dave Roberts) v37: * Claar's modifications which
+	       test if ftp is successful, otherwise give an error message
 	     * After a read, the alternate file was pointing to the temp file.
 	       The temp file buffer is now wiped out.
 	     * removed silent from transfer methods so user can see what's
