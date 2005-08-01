@@ -1,15 +1,17 @@
 " NetrwFileHandlers: contains various extension-based file handlers for
 "                    netrw's browsers' x command ("eXecute launcher")
 " Author:	Charles E. Campbell, Jr.
-" Date:		Aug 31, 2004
-" Version:	3
+" Date:		Apr 07, 2005
+" Version:	4a	NOT RELEASED
 
 " ---------------------------------------------------------------------
-" Prevent Reloading: {{{1
+" Load Once: {{{1
 if exists("g:loaded_netrwfilehandlers") || &cp
  finish
 endif
-let g:loaded_netrwfilehandlers= "v3"
+let s:keepcpo= &cpo
+set cpo&vim
+let g:loaded_netrwfilehandlers= "v4a"
 
 " ---------------------------------------------------------------------
 " NetrwFileHandler_html: handles html when the user hits "x" when the {{{1
@@ -308,6 +310,7 @@ fun! NetrwFileHandler_obj(obj)
   return 1
 endfun
 
-
+let &cpo= s:keepcpo
 " ---------------------------------------------------------------------
+"  Modelines: {{{1
 "  vim: ts=4 fdm=marker
