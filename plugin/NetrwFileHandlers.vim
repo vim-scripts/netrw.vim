@@ -1,25 +1,25 @@
 " NetrwFileHandlers: contains various extension-based file handlers for
 "                    netrw's browsers' x command ("eXecute launcher")
 " Author:	Charles E. Campbell, Jr.
-" Date:		Aug 08, 2005
-" Version:	5a	NOT RELEASED
+" Date:		Aug 15, 2005
+" Version:	5
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr.
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
-"               netrw.vim is provided *as is* and comes with no
+"               NetrwFileHandlers.vim is provided *as is* and comes with no
 "               warranty of any kind, either expressed or implied. In no
 "               event will the copyright holder be liable for any damages
 "               resulting from the use of this software.
 
 " ---------------------------------------------------------------------
 " Load Once: {{{1
-if exists("g:loaded_netrwfilehandlers") || &cp
+if exists("g:loaded_NetrwFileHandlers") || &cp
  finish
 endif
 let s:keepcpo= &cpo
 set cpo&vim
-let g:loaded_netrwfilehandlers= "v5a"
+let g:loaded_NetrwFileHandlers= "v5"
 
 " ---------------------------------------------------------------------
 " NetrwFileHandler_html: handles html when the user hits "x" when the {{{1

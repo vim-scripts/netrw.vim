@@ -1,16 +1,17 @@
 " netrw.vim: Handles file transfer and remote directory listing across a network
-" Last Change:	Aug 10, 2005
+" Last Change:	Aug 15, 2005
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	60
+" Version:	62
 " License:	Vim License  (see vim's :help license)
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr.
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
-"               netrw.vim is provided *as is* and comes with no
-"               warranty of any kind, either expressed or implied. In no
-"               event will the copyright holder be liable for any damages
-"               resulting from the use of this software.
+"               netrw.vim is provided *as is* and comes with no warranty
+"               of any kind, either expressed or implied. By using this
+"               plugin, you agree that in no event will the copyright
+"               holder be liable for any damages resulting from the use
+"               of this software.
 "
 "  But be doers of the Word, and not only hearers, deluding your own selves
 "  (James 1:22 RSV)
@@ -22,7 +23,7 @@
 if exists("g:loaded_netrw") || &cp
   finish
 endif
-let g:loaded_netrw  = "v60"
+let g:loaded_netrw  = "v62"
 if v:version < 700
  let loaded_explorer = 1
 endif
@@ -1079,6 +1080,9 @@ fun! <SID>NetBrowse(dirname)
    return
   endif
 
+  " use buffer-oriented WinVars if buffer ones exist but window ones don't
+  call s:UseBufWinVars()
+
   " make this buffer modifiable
   setlocal ma nonu nowrap
 
@@ -1160,6 +1164,9 @@ fun! <SID>NetBrowse(dirname)
    silent call s:NetRead(method."://".user.machine."/".path)
    exe "silent doau BufReadPost ".fname
    keepjumps 1d
+
+   " save certain window-oriented variables into buffer-oriented variables
+   call s:BufWinVars()
 
    setlocal nonu nomod noma
 
@@ -1429,6 +1436,8 @@ endfun
 "  NetGetWord: it gets the directory named under the cursor
 fun! <SID>NetGetWord()
 "  call Dfunc("NetGetWord() line#".line("."))
+  call s:UseBufWinVars()
+
   if exists("w:netrw_bannercnt") && line(".") < w:netrw_bannercnt
    let dirname= "./"
    let curline= getline(".")
@@ -2166,8 +2175,11 @@ fun! <SID>LocalBrowse(dirname)
    set noautochdir
   endif
 
+  " use buffer-oriented WinVars if buffer ones exist but window ones don't
+  call s:UseBufWinVars()
+
   " find buffer number of buffer named precisely the same as a:dirname
-  let bufnum= bufnr(a:dirname)
+  let bufnum= bufnr(escape(a:dirname,'\'))
 "  call Decho("findbuf: bufnum=".bufnum)
   if bufnum > 0 && bufname(bufnum) != a:dirname
    let ibuf= 1
@@ -2202,7 +2214,7 @@ fun! <SID>LocalBrowse(dirname)
     if getline(2) =~ '^" Directory Listing '
      if !g:netrw_keepdir
 "      call Decho("change directory: cd ".b:netrw_curdir)
-      exe 'cd '.b:netrw_curdir
+      exe 'cd '.escape(b:netrw_curdir,s:netrw_cd_escape)
      endif
 "     call Dret("LocalBrowse : reusing buffer#".bufnum."<".a:dirname.">")
      return
@@ -2212,7 +2224,11 @@ fun! <SID>LocalBrowse(dirname)
   let s:last_sort_by= g:netrw_sort_by
 
   " get the new directory name
-  let b:netrw_curdir= substitute(a:dirname,'\\','/','ge')
+  if has("win32") || has("win95") || has("win64") || has("win16")
+   let b:netrw_curdir= substitute(a:dirname,'\\','/','ge')
+  else
+   let b:netrw_curdir= a:dirname
+  endif
   if b:netrw_curdir =~ '[/\\]$'
    let b:netrw_curdir= substitute(b:netrw_curdir,'[/\\]$','','e')
   endif
@@ -2222,7 +2238,7 @@ fun! <SID>LocalBrowse(dirname)
   if !g:netrw_keepdir
 "   call Decho("change directory: cd ".b:netrw_curdir)
    try
-    exe 'cd '.b:netrw_curdir
+    exe 'cd '.escape(b:netrw_curdir,s:netrw_cd_escape)
    catch /^Vim\%((\a\+)\)\=:E472/
     echohl Error | echo "***netrw*** unable to change directory to <".b:netrw_curdir."> (permissions?)" | echohl None
     call inputsave()|call input("Press <cr> to continue")|call inputrestore()
@@ -2239,7 +2255,7 @@ fun! <SID>LocalBrowse(dirname)
   exe 'silent! file '.escape(b:netrw_curdir,s:netrw_cd_escape)
 
   " make this buffer modifiable and hidden
-  setlocal ma hidden nonu
+  setlocal ma hidden nonu bt=nofile
   if v:version < 700
    silent! %d
   else
@@ -2379,6 +2395,9 @@ fun! <SID>LocalBrowse(dirname)
 
   " record previous current directory
   let w:netrw_prvdir= b:netrw_curdir
+
+  " save certain window-oriented variables into buffer-oriented variables
+  call s:BufWinVars()
 
   setlocal noma nomod nonu bh=hide nobl
   if has("netbeans_intg") || has("sun_workshop")
@@ -3299,6 +3318,7 @@ fun! s:SaveWinVars()
   if exists("w:netrw_explore_mtchcnt")|let s:explore_mtchcnt = w:netrw_explore_mtchcnt|endif
   if exists("w:netrw_explore_bufnr")  |let s:explore_bufnr   = w:netrw_explore_bufnr  |endif
   if exists("w:netrw_explore_line")   |let s:explore_line    = w:netrw_explore_line   |endif
+  if exists("w:netrw_explore_list")   |let s:explore_list    = w:netrw_explore_list   |endif
 "  call Dret("SaveWinVars")
 endfun
 
@@ -3314,7 +3334,46 @@ fun! s:CopyWinVars()
   if exists("s:explore_mtchcnt")|let w:netrw_explore_mtchcnt = s:explore_mtchcnt|unlet s:explore_mtchcnt|endif
   if exists("s:explore_bufnr")  |let w:netrw_explore_bufnr   = s:explore_bufnr  |unlet s:explore_bufnr  |endif
   if exists("s:explore_line")   |let w:netrw_explore_line    = s:explore_line   |unlet s:explore_line   |endif
+  if exists("s:explore_list")   |let w:netrw_explore_list    = s:explore_list   |unlet s:explore_list   |endif
 "  call Dret("CopyWinVars")
+endfun
+
+" ---------------------------------------------------------------------
+" BufWinVars: (used by NetBrowse() and LocalBrowse()) {{{1
+"   To allow separate windows to have their own activities, such as
+"   Explore **/pattern, several variables have been made window-oriented.
+"   However, when the user splits a browser window (ex: ctrl-w s), these
+"   variables are not inherited by the new window.  BufWinVars() and
+"   UseBufWinVars() get around that.
+fun! s:BufWinVars()
+"  call Dfunc("BufWinVars()")
+  if exists("w:netrw_bannercnt")      |let b:netrw_bannercnt       = w:netrw_bannercnt      |endif
+  if exists("w:netrw_method")         |let b:netrw_method          = w:netrw_method         |endif
+  if exists("w:netrw_prvdir")         |let b:netrw_prvdir          = w:netrw_prvdir         |endif
+  if exists("w:netrw_explore_indx")   |let b:netrw_explore_indx    = w:netrw_explore_indx   |endif
+  if exists("w:netrw_explore_listlen")|let b:netrw_explore_listlen = w:netrw_explore_listlen|endif
+  if exists("w:netrw_explore_mtchcnt")|let b:netrw_explore_mtchcnt = w:netrw_explore_mtchcnt|endif
+  if exists("w:netrw_explore_bufnr")  |let b:netrw_explore_bufnr   = w:netrw_explore_bufnr  |endif
+  if exists("w:netrw_explore_line")   |let b:netrw_explore_line    = w:netrw_explore_line   |endif
+  if exists("w:netrw_explore_list")   |let b:netrw_explore_list    = w:netrw_explore_list   |endif
+"  call Dret("BufWinVars")
+endfun
+
+" ---------------------------------------------------------------------
+" UseBufWinVars: (used by NetBrowse() and LocalBrowse() {{{1
+"              Matching function to BufferWinVars()
+fun! s:UseBufWinVars()
+"  call Dfunc("UseBufWinVars()")
+  if exists("b:netrw_bannercnt")       && !exists("w:netrw_bannercnt")      |let w:netrw_bannercnt       = b:netrw_bannercnt      |endif
+  if exists("b:netrw_method")          && !exists("w:netrw_method")         |let w:netrw_method          = b:netrw_method         |endif
+  if exists("b:netrw_prvdir")          && !exists("w:netrw_prvdir")         |let w:netrw_prvdir          = b:netrw_prvdir         |endif
+  if exists("b:netrw_explore_indx")    && !exists("w:netrw_explore_indx")   |let w:netrw_explore_indx    = b:netrw_explore_indx   |endif
+  if exists("b:netrw_explore_listlen") && !exists("w:netrw_explore_listlen")|let w:netrw_explore_listlen = b:netrw_explore_listlen|endif
+  if exists("b:netrw_explore_mtchcnt") && !exists("w:netrw_explore_mtchcnt")|let w:netrw_explore_mtchcnt = b:netrw_explore_mtchcnt|endif
+  if exists("b:netrw_explore_bufnr")   && !exists("w:netrw_explore_bufnr")  |let w:netrw_explore_bufnr   = b:netrw_explore_bufnr  |endif
+  if exists("b:netrw_explore_line")    && !exists("w:netrw_explore_line")   |let w:netrw_explore_line    = b:netrw_explore_line   |endif
+  if exists("b:netrw_explore_list")    && !exists("w:netrw_explore_list")   |let w:netrw_explore_list    = b:netrw_explore_list   |endif
+"  call Dret("UseBufWinVars")
 endfun
 
 let &cpo= s:keepcpo
