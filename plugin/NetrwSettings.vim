@@ -1,8 +1,8 @@
 " NetrwSettings.vim: makes netrw settings simpler
-" Last Change:	Aug 15, 2005
+" Last Change:	Aug 16, 2005
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:		2
-" Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr.
+" Version:		3
+" Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
@@ -11,19 +11,22 @@
 "               this plugin, you agree that in no event will the copyright
 "               holder be liable for any damages resulting from the use
 "               of this software.
+"
+" Mat 4:23 (WEB) Jesus went about in all Galilee, teaching in their {{{1
+"                synagogues, preaching the gospel of the kingdom, and healing
+"                every disease and every sickness among the people.
 " Load Once: {{{1
 if exists("g:loaded_NetrwSettings") || &cp
   finish
 endif
-let g:loaded_NetrwSettings  = "v2"
-
-" ---------------------------------------------------------------------
-"  Public Interface:
-com! -nargs=0 NetrwSettings :call <SID>NetrwSettings()
+let g:loaded_NetrwSettings  = "v3"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
-fun! s:NetrwSettings()
+fun! NetrwSettings#NetrwSettings()
+  " this call is here largely just to insure that netrw has been loaded
+  call netrw#NetSavePosn()
+
   above wincmd s
   enew
   setlocal noswapfile bh=wipe
@@ -148,3 +151,7 @@ fun! NetrwSettingHelp()
   endif
 "  call Dret("NetrwSettingHelp")
 endfun
+
+" ---------------------------------------------------------------------
+" Modelines: {{{1
+" vim:ts=8 fdm=marker
