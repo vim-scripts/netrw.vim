@@ -1,7 +1,7 @@
-*pi_netrw.txt*  For Vim version 7.0f.  Last change: Apr 25, 2006
-
-		VIM REFERENCE MANUAL    by Charles E. Campbell, Jr.
-
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 May 12
+>
+		NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
+<
 
 *dav*           *http*          *network*       *rcp*           *scp*
 *fetch*         *netrw*         *Nread*         *rsync*         *sftp*
@@ -351,7 +351,7 @@ additional prompting.
 
 	(*2) if <.netrc> is present, it is assumed that it will
 	work with your ftp client.  Otherwise the script will
-	prompt for user-id and pasword.
+	prompt for user-id and password.
 
         (*3) for ftp, "machine" may be machine#port or machine:port
 	if a different port is needed than the standard ftp port
@@ -458,7 +458,7 @@ see |netrw-urls|).
 		effectively remove the user-id and password by using ""
 		strings.
 
-:NetrwSettings  This command is desribed in |netrw-settings| -- used to
+:NetrwSettings  This command is described in |netrw-settings| -- used to
                 display netrw settings and change netrw behavior.
 
 
@@ -726,6 +726,7 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				=0: re-using the same window
 				=1: horizontally splitting the window first  
 				=2: vertically   splitting the window first  
+				=3: open file in new tab
 
   *g:netrw_browsex_viewer*	specify user's preference for a viewer: >
 					"kfmclient exec"
@@ -788,8 +789,11 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				 default: (if ssh is executable)
 				          "ssh HOSTNAME ls -FLa"
 
-  *g:netrw_longlist*		if =1, then long listing will be default
-
+  *g:netrw_longlist*	        Set the default listing style:
+                                = 0: thin listing (one file per line)
+                                = 1: long listing (one file per line with time
+				     stamp information and file size)
+				=2 : wide listing (multiple files in columns)
   *g:netrw_list_hide*		comma separated pattern list for hiding files
 				 default: ""
 
@@ -1014,9 +1018,10 @@ protocol given in the original read request.
   use the "thin" format to select it.
 
 The |g:netrw_browse_split| option, which is zero by default, may be used to
-cause the opening of files to be done in a new window.  The splitting will
-be done horizontally if the option is one and vertically if the option is
-two.
+cause the opening of files to be done in a new window or tab.  When the option
+is one or two, the splitting will be taken horizontally or vertically,
+respectively.  When the option is set to three, a <cr> will cause the file
+to appear in a new tab.
 
 
 OBTAINING A FILE						*netrw-O*
@@ -1463,16 +1468,42 @@ which is loaded automatically at startup (assuming :set nocp).
 	   This command, provided by <Decho.vim>, will comment out all
 	   Decho-debugging statements (Dfunc(), Dret(), Decho(), Dredir()).
 
-	4. Then bring up vim and attempt a transfer.  A set of messages
-	   should appear concerning the steps that <netrw.vim> took in
-	   attempting to read/write your file over the network.  Please
-	   send that information to <netrw.vim>'s maintainer,
+	4. Then bring up vim and attempt a transfer or do browsing.  A set of
+	   messages should appear concerning the steps that <netrw.vim> took
+	   in attempting to read/write your file over the network.
+
+	   To save the file, use >
+	   	:wincmd j
+		:set bt=
+		:w! DBG
+<	   Please send that information to <netrw.vim>'s maintainer,
 
 		NdrOchip at ScampbellPfamily.AbizM - NOSPAM
 
 ==============================================================================
 11. History						*netrw-history* {{{1
 
+	v99: May 09, 2006 * g:netrw_browse_split=3 for opening files in new
+	                    tabs implemented.
+	     May 12, 2006 * deletes temporary file at end of NetRead()
+	                  * visual mode based Obtain implemented
+			  * added -complete=dir to the various Explore
+			    commands
+	v98: May 02, 2006 * the "p" key didn't work properly when the browsing
+	                    directory name had spaces in it.
+	v97: May 01, 2006 * exists("&acd") now used to determine if
+	                    the 'acd' option exists
+			  * "obtain" now works again under Windows
+	v96: * bugfix - the |'acd'| option is not always defined but is
+	       now bypassed only when it is
+	v95: * bugfix - Hiding mode worked correctly (don't show any file
+	       matching any of the g:netrw_hide patterns), but
+	       but showing mode was showing only those files that didn't
+	       match any of the g:netrw_hide patterns.  Instead, it now
+	       shows all files that match any of the g:netrw_hide patterns
+	       (the difference between a logical and and logical or).
+	v94: * bugfix - a Decho() had a missing quote; only affects things
+	       when debugging was enabled.
 	v93: * bugfix - removed FocusGained event from causing a slow-browser
 	       refresh for Windows
 	v92: * :Explore **//pattern implemented  (**/filepattern already taken)

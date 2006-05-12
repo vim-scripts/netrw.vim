@@ -60,12 +60,12 @@ com! -nargs=*		NetUserPass	call NetUserPass(<f-args>)
 com! -nargs=+           Ncopy           call netrw#NetObtain(<f-args>)
 
 " Commands: :Explore, :Sexplore, Hexplore, Vexplore {{{2
-com! -nargs=? -bar -bang -count=0	Explore		call netrw#Explore(<count>,0,0+<bang>0,<q-args>)
-com! -nargs=? -bar -bang -count=0	Sexplore	call netrw#Explore(<count>,1,0+<bang>0,<q-args>)
-com! -nargs=? -bar -bang -count=0	Hexplore	call netrw#Explore(<count>,1,2+<bang>0,<q-args>)
-com! -nargs=? -bar -bang -count=0	Vexplore	call netrw#Explore(<count>,1,4+<bang>0,<q-args>)
-com! -nargs=? -bar -bang		Nexplore	call netrw#Explore(-1,0,0,<q-args>)
-com! -nargs=? -bar -bang		Pexplore	call netrw#Explore(-2,0,0,<q-args>)
+com! -nargs=? -bar -bang -count=0 -complete=dir	Explore		call netrw#Explore(<count>,0,0+<bang>0,<q-args>)
+com! -nargs=? -bar -bang -count=0 -complete=dir	Sexplore	call netrw#Explore(<count>,1,0+<bang>0,<q-args>)
+com! -nargs=? -bar -bang -count=0 -complete=dir	Hexplore	call netrw#Explore(<count>,1,2+<bang>0,<q-args>)
+com! -nargs=? -bar -bang -count=0 -complete=dir	Vexplore	call netrw#Explore(<count>,1,4+<bang>0,<q-args>)
+com! -nargs=? -bar -bang			Nexplore	call netrw#Explore(-1,0,0,<q-args>)
+com! -nargs=? -bar -bang			Pexplore	call netrw#Explore(-2,0,0,<q-args>)
 
 " Commands: NetrwSettings {{{2
 com! -nargs=0 NetrwSettings :call netrwSettings#NetrwSettings()

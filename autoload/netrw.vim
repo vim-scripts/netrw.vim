@@ -1,7 +1,7 @@
 " netrw.vim: Handles file transfer and remote directory listing across a network
 "            AUTOLOAD PORTION
-" Date:		Apr 24, 2006
-" Version:	93
+" Date:		May 12, 2006
+" Version:	99
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
@@ -23,14 +23,14 @@
 if &cp || exists("g:loaded_netrw")
   finish
 endif
-let g:loaded_netrw = "v93"
+let g:loaded_netrw = "v99"
 if v:version < 700
  echohl WarningMsg | echo "***netrw*** you need vim version 7.0 or later for version ".g:loaded_netrw." of netrw" | echohl None
  finish
 endif
 let s:keepcpo= &cpo
 set cpo&vim
-" call Decho("doing autoload/netrw.vim")
+" call Decho("doing autoload/netrw.vim version ".g:loaded_netrw)
 
 " ======================
 "  Netrw Variables: {{{1
@@ -142,7 +142,7 @@ if !exists("g:netrw_list_cmd")
   " provide a default listing command
   let g:netrw_list_cmd= g:netrw_ssh_cmd." HOSTNAME ls -FLa"
  else
-"  call Decho(g:netrw_ssh_cmd." is not executable, can't do remote directory exploring)
+"  call Decho(g:netrw_ssh_cmd." is not executable, can't do remote directory exploring")
   let g:netrw_list_cmd= ""
  endif
 endif
@@ -322,11 +322,13 @@ fun! netrw#NetRead(mode,...)
 
   " get name of a temporary file and set up shell-quoting character {{{3
   let tmpfile= tempname()
+"  call Decho("tmpfile<".tmpfile.">")
   let tmpfile= escape(substitute(tmpfile,'\','/','ge'),g:netrw_tmpfile_escape)
+"  call Decho("tmpfile<".tmpfile.">")
   if !isdirectory(substitute(tmpfile,'[^/]\+$','','e'))
    echohl Error | echo "***netrw*** your <".substitute(tmpfile,'[^/]\+$','','e')."> directory is missing!" | echohl None
    call inputsave()|call input("Press <cr> to continue")|call inputrestore()
-"   call Dret("NetRead")
+"   call Dret("NetRead :1 getcwd<".getcwd().">")
    return
   endif
 "  call Decho("tmpfile<".tmpfile.">")
@@ -378,7 +380,7 @@ fun! netrw#NetRead(mode,...)
          echohl Error | echo "***netrw*** Unbalanced string in filename '". wholechoice ."'" | echohl None
          call inputsave()|call input("Press <cr> to continue")|call inputrestore()
 	endif
-"        call Dret("NetRead")
+"        call Dret("NetRead :2 getcwd<".getcwd().">")
         return
        endif
        let choice= a:{ichoice}
@@ -396,7 +398,9 @@ fun! netrw#NetRead(mode,...)
     let choice = substitute(choice,'\\','/','ge')
 "    call Decho("fixing up windows url to <".choice."> tmpfile<".tmpfile)
 
-    exe 'cd ' . fnamemodify(tmpfile,':h')
+    if !g:netrw_keepdir
+     exe 'lcd ' . fnamemodify(tmpfile,':h')
+    endif
     let tmpfile = fnamemodify(tmpfile,':t')
    endif
 
@@ -408,7 +412,7 @@ fun! netrw#NetRead(mode,...)
    if choice =~ "^.*[\/]$"
 "    call Decho("yes, choice matches '^.*[\/]$'")
     keepjumps call s:NetBrowse(choice)
-"    call Dret("NetRead")
+"    call Dret("NetRead :3 getcwd<".getcwd().">")
     return
    endif
 
@@ -430,7 +434,7 @@ fun! netrw#NetRead(mode,...)
    " rcp:  NetRead Method #1 {{{3
    if  b:netrw_method == 1 " read with rcp
 "    call Decho("read via rcp (method #1)")
-   " ER: noting done with g:netrw_uid yet?
+   " ER: nothing done with g:netrw_uid yet?
    " ER: on Win2K" rcp machine[.user]:file tmpfile
    " ER: if machine contains '.' adding .user is required (use $USERNAME)
    " ER: the tmpfile is full path: rcp sees C:\... as host C
@@ -564,7 +568,7 @@ fun! netrw#NetRead(mode,...)
       echohl Error | echo "***netrw*** neither wget nor fetch command is available" | echohl None
       call inputsave()|call input("Press <cr> to continue")|call inputrestore()
      endif
-"     call Dret("NetRead")
+"     call Dret("NetRead :4 getcwd<".getcwd().">")
      return
     endif
 
@@ -697,9 +701,12 @@ fun! netrw#NetRead(mode,...)
    unlet b:netrw_method
    unlet b:netrw_fname
   endif
+  if filereadable(tmpfile)
+   call delete(tmpfile)
+  endif
   call s:NetOptionRestore()
 
-"  call Dret("NetRead")
+"  call Dret("NetRead :5 getcwd<".getcwd().">")
 endfun
 
 " ------------------------------------------------------------------------
@@ -806,9 +813,12 @@ fun! netrw#NetWrite(...) range
   call s:NetOptionSave()
 
   " Get Temporary Filename {{{3
-  let tmpfile= escape(tempname(),g:netrw_tmpfile_escape)
+  let tmpfile= tempname()
+"  call Decho("tmpfile<".tmpfile."> (raw)")
+  let tmpfile= escape(substitute(tmpfile,'\','/','ge'),g:netrw_tmpfile_escape)
+"  call Decho("tmpfile<".tmpfile."> (escaped)")
   if !isdirectory(substitute(tmpfile,'[^/]\+$','','e'))
-   echohl Error | echo "***netrw*** your ".substitute(tmpfile,'[^/]\+$','','e')." directory is missing!"
+   echohl Error | echo "***netrw*** your <".substitute(tmpfile,'[^/]\+$','','e')."> directory is missing!"
    call inputsave()|call input("Press <cr> to continue")|call inputrestore()
 "   call Dret("NetWrite")
    return
@@ -889,8 +899,9 @@ fun! netrw#NetWrite(...) range
    " fix up windows urls
    if has("win32") || has("win95") || has("win64") || has("win16")
     let choice= substitute(choice,'\\','/','ge')
-    "ER: see NetRead()
-    exe 'cd ' . fnamemodify(tmpfile,':h')
+    if !g:netrw_keepdir
+     exe 'lcd ' . fnamemodify(tmpfile,':h')
+    endif
     let tmpfile = fnamemodify(tmpfile,':t')
    endif
 
@@ -1096,7 +1107,9 @@ fun! netrw#NetWrite(...) range
 
   " cleanup {{{3
 "  call Decho("cleanup")
-  let result=delete(tmpfile)
+  if filereadable(tmpfile)
+   call delete(tmpfile)
+  endif
   call s:NetOptionRestore()
 
   if a:firstline == 1 && a:lastline == line("$")
@@ -1207,6 +1220,7 @@ fun! s:NetBrowse(dirname)
    elseif g:netrw_sort_by =~ "^s"
     let listcmd= listcmd."S"
    endif
+
    " optionally sort in reverse
    if g:netrw_sort_direction =~ "^r" && listcmd == "dir"
     let listcmd= listcmd."r"
@@ -1304,7 +1318,8 @@ fun! s:NetBrowse(dirname)
   nnoremap <buffer> <silent> <c-h>	:call <SID>NetHideEdit(0)<cr>
   nnoremap <buffer> <silent> i		:call <SID>NetLongList(0)<cr>
   nnoremap <buffer> <silent> o		:call <SID>NetSplit(0)<cr>
-  nnoremap <buffer> <silent> O		:call netrw#NetObtain()<cr>
+  nnoremap <buffer> <silent> O		:call netrw#NetObtain(0)<cr>
+  vnoremap <buffer> <silent> O		:call netrw#NetObtain(1)<cr>
   nnoremap <buffer> <silent> P		:call <SID>NetPrevWinOpen(0)<cr>
   nnoremap <buffer> <silent> q		:<c-u>call <SID>NetBookmarkDir(2,expand("%"))<cr>
   nnoremap <buffer> <silent> r		:let g:netrw_sort_direction= (g:netrw_sort_direction =~ 'n')? 'r' : 'n'<bar>exe "norm! 0"<bar>call <SID>NetBrowse(<SID>NetBrowseChgDir(expand("%"),'./'))<cr>
@@ -1498,12 +1513,14 @@ fun! s:NetBrowseChgDir(dirname,newdir)
    " handling a file
    let dirname= dirname.newdir
    let didfile= 0
-   if g:netrw_browse_split == 1
+   if     g:netrw_browse_split == 1
     new
     wincmd _
    elseif g:netrw_browse_split == 2
     rightb vert new
     wincmd |
+   elseif g:netrw_browse_split == 3
+    wincmd gf
    else
     " handling a file, didn't split, so possibly remove menu
     call s:NetMenu(0)
@@ -2023,7 +2040,12 @@ endfun
 fun! s:NetrwListHide()
 "  call Dfunc("NetrwListHide() hide=".g:netrw_hide." listhide<".g:netrw_list_hide.">")
 
+  " find a character not in the "hide" string to used as a separator
+  " for :g and :v commands
   let listhide= g:netrw_list_hide
+  let sep     = strpart(substitute('~!@#$%^&*{};:,<.>/?|abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890','['.escape(listhide,'-]^\').']','','ge'),1,1)
+"  call Decho("sep=".sep)
+
   while listhide != ""
    if listhide =~ ','
     let hide     = substitute(listhide,',.*$','','e')
@@ -2036,14 +2058,16 @@ fun! s:NetrwListHide()
    " Prune the list by hiding any files which match
    if g:netrw_hide == 1
 "    call Decho("hiding<".hide."> listhide<".listhide.">")
-"    call Decho('exe silent keepjumps '.w:netrw_bannercnt.',$g~'.hide.'~d')
-    exe 'silent keepjumps '.w:netrw_bannercnt.',$g~'.hide.'~d'
+    exe 'silent keepjumps '.w:netrw_bannercnt.',$g'.sep.hide.sep.'d'
    elseif g:netrw_hide == 2
 "    call Decho("showing<".hide."> listhide<".listhide.">")
-"    call Decho('exe silent keepjumps '.w:netrw_bannercnt.',$v~'.hide.'~d')
-    exe 'silent keepjumps '.w:netrw_bannercnt.',$v~'.hide.'~d'
+    exe 'silent keepjumps '.w:netrw_bannercnt.',$g'.sep.hide.sep.'s@^@ /-KEEP-/ @'
    endif
   endwhile
+  if g:netrw_hide == 2
+   exe 'silent keepjumps '.w:netrw_bannercnt.',$v@^ /-KEEP-/ @d'
+   exe 'silent keepjumps '.w:netrw_bannercnt.',$s@^\%( /-KEEP-/ \)\+@@e'
+  endif
 
 "  call Dret("NetrwListHide")
 endfun
@@ -2419,48 +2443,62 @@ endfun
 
 " ---------------------------------------------------------------------
 " NetObtain: obtain file under cursor (for remote browsing support) {{{2
-fun! netrw#NetObtain(...)
-"  call Dfunc("NetObtain() a:0=".a:0)
+fun! netrw#NetObtain(vismode,...) range
+"  call Dfunc("NetObtain(vismode=".a:vismode.") a:0=".a:0)
 
-  if a:0==0
-   " no arguments -- use word under cursor
+  if a:vismode == 0
+   " normal mode
    let fname= expand("<cWORD>")
 "   call Decho("no arguments, use <".fname.">")
-  elseif a:0 > 1
-   " more than one argument, recurse with each argument separately
-"   call Decho("more than 1 argument, use recursion")
-   let i=1
-   while i <= a:0
-    call netrw#NetObtain(a:{i})
-    let i=i+1
-   endwhile
+  elseif a:vismode == 1
+   " visual mode
+   let keeprega = @a
+   norm! gv"ay
+   if g:netrw_longlist == 0
+    " thin listing
+    let filelist= split(@a,'\n')
+   elseif g:netrw_longlist == 1
+    " long listing
+    let filelist= split(substitute(@a,'\t.\{-}\n','\n','g'),'\n')
+   else
+    " wide listing
+	let filelist = split(substitute(@a,'\s\{2,}','\n','g'),'\n')
+	let filelist = map(filelist,'substitute(v:val,"^\\s\\+","","")')
+	let filelist = map(filelist,'substitute(v:val,"\\s\\+$","","")')
+   endif
+"   call Decho("filelist<".string(filelist).">")
+   let @a= keeprega
+   for f in filelist
+    if f != ""
+     call netrw#NetObtain(2,f)
+    endif
+   endfor
+"   call Dret("NetObtain : visual mode handler")
    return
-  else
-   " one argument provided
-   let fname              = a:1
-   let keep_netrw_choice  = exists("b:netrw_choice")?  b:netrw_choice  : ""
-   let keep_netrw_fname   = exists("b:netrw_fname")?   b:netrw_fname   : ""
-   let keep_netrw_wmethod = exists("w:netrw_method")?  w:netrw_method  : ""
-   call s:NetMethod(fname)
-   let w:netrw_method= b:netrw_method
-   let fname         = b:netrw_fname
-"   call Decho("g:netrw_scp_cmd<".g:netrw_scp_cmd.">")
-"   call Decho("g:netrw_machine<".g:netrw_machine.">")
-"   call Decho("fname<".fname.">")
+  elseif a:vismode == 2
+   " multiple file mode
+   let fname= a:1
+"   call Decho("visual mode handling: <".fname.">")
   endif
 
   " NetrwStatusLine support - for obtaining support
   call s:SetupNetrwStatusLine('%f %h%m%r%=%9*Obtaining '.fname)
 
-"  call Decho("method=".w:netrw_method)
   if exists("w:netrw_method") && w:netrw_method =~ '[235]'
+"   call Decho("method=".w:netrw_method)
    if executable("ftp")
+"    call Decho("ftp is executable, method=".w:netrw_method)
     let curdir = expand("%")
     let path   = substitute(curdir,'ftp://[^/]\+/','','e')
     let curline= line(".")
     let endline= line("$")+1
     set ma
     keepjumps $
+"    call Decho("getcwd<".getcwd().">")
+"    call Decho("curdir<".curdir.">")
+"    call Decho("path<".path.">")
+"    call Decho("curline=".curline)
+"    call Decho("endline=".endline)
 
     ".........................................
     if w:netrw_method == 2
@@ -2472,6 +2510,8 @@ fun! netrw#NetObtain(...)
      endif
      put ='get '.fname
 "     call Decho("ftp:  get ".fname)
+     put ='quit'
+"     call Decho("ftp:  quit")
      if exists("g:netrw_port") && g:netrw_port != ""
 "      call Decho("exe ".g:netrw_silentxfer.endline.",$!".g:netrw_ftp_cmd." -i ".g:netrw_machine." ".g:netrw_port)
       exe g:netrw_silentxfer.endline.",$!".g:netrw_ftp_cmd." -i ".g:netrw_machine." ".g:netrw_port
@@ -2525,6 +2565,7 @@ fun! netrw#NetObtain(...)
     exe "keepjumps ".curline
     setlocal noma nomod
    else
+"    call Decho("ftp not executable")
     if !exists("g:netrw_quiet")
      echohl Error | echo "***netrw*** this system doesn't support ftp" | echohl None
      call inputsave()|call input("Press <cr> to continue")|call inputrestore()
@@ -2544,6 +2585,7 @@ fun! netrw#NetObtain(...)
   ".........................................
   else
    " scp: Method#4
+"   call Decho("using scp")
    let curdir = expand("%")
    let path   = substitute(curdir,'scp://[^/]\+/','','e')
 "   call Decho("path<".path.">")
@@ -2759,7 +2801,7 @@ endfun
 " DirBrowse: supports local file/directory browsing {{{2
 fun! netrw#DirBrowse(dirname)
   if !exists("w:netrw_longlist")|let w:netrw_longlist= g:netrw_longlist|endif
-"  call Dfunc("DirBrowse(dirname<".a:dirname.">) buf#".bufnr("%")." winnr=".winnr()." sortby=".g:netrw_sort_by)
+"  call Dfunc("DirBrowse(dirname<".a:dirname.">) buf#".bufnr("%")." winnr=".winnr()." sortby=".g:netrw_sort_by." hide=".g:netrw_hide)
 "  call Dredir("ls!")
 
   if exists("s:netrw_skipbrowse")
@@ -2776,7 +2818,7 @@ fun! netrw#DirBrowse(dirname)
   endif
 
   call s:NetOptionSave()
-  if w:acdkeep
+  if exists("w:acdkeep") && w:acdkeep
    exe 'cd '.escape(a:dirname,s:netrw_cd_escape)
 "   call Decho("cd ".escape(a:dirname,s:netrw_cd_escape))
 "   call Decho("getcwd<".getcwd().">")
@@ -3180,12 +3222,14 @@ fun! s:LocalBrowseChgDir(dirname,newdir,...)
    if a:0 < 1
 "    call Decho("dirname<".dirname."> netrw_cd_escape<".s:netrw_cd_escape.">")
 "    call Decho("about to edit<".escape(dirname,s:netrw_cd_escape).">")
-    if g:netrw_browse_split == 1
+    if     g:netrw_browse_split == 1
      new
      wincmd _
     elseif g:netrw_browse_split == 2
      rightb vert new
      wincmd |
+    elseif g:netrw_browse_split == 3
+     wincmd gf
     else
      " handling a file, didn't split, so possibly remove menu
      call s:NetMenu(0)
@@ -3474,7 +3518,7 @@ fun! s:LocalPreview(path) range
 "  call Dfunc("LocalPreview(path<".a:path.">)")
   if has("quickfix")
    if !isdirectory(a:path)
-    exe "pedit ".a:path
+    exe "pedit ".escape(a:path,g:netrw_fname_escape)
    elseif !exists("g:netrw_quiet")
     echohl WarningMsg | echo "***netrw*** sorry, cannot preview a directory such as <".a:path.">" | echohl None
     call inputsave()|call input("Press <cr> to continue")|call inputrestore()
@@ -4021,7 +4065,9 @@ fun! s:NetOptionSave()
   endif
 
   " Get Temporary Filename
-  let w:acdkeep   = &acd
+  if exists("&acd")
+   let w:acdkeep  = &acd
+  endif
   let w:aikeep    = &ai
   let w:fokeep    = &fo
   let w:cikeep    = &ci
@@ -4031,6 +4077,9 @@ fun! s:NetOptionSave()
   let w:cpokeep   = &cpo
   let w:hidkeep   = &hidden
   let w:magickeep = &magic
+  if !g:netrw_keepdir
+   let w:dirkeep  = getcwd()
+  endif
   let w:gdkeep    = &gd
   let w:repkeep   = &report
   let w:spellkeep = &spell
@@ -4038,7 +4087,11 @@ fun! s:NetOptionSave()
   setlocal cino =
   setlocal com  =
   setlocal cpo -=aA
-  setlocal noacd nocin noai noci magic nospell fo=nroql2 nohid
+  if exists("&acd")
+   setlocal noacd nocin noai noci magic nospell fo=nroql2 nohid
+  else
+   setlocal nocin noai noci magic nospell fo=nroql2 nohid
+  endif
   setlocal tw   =0
   setlocal report=10000
   if has("win32") && !has("win95")
@@ -4060,13 +4113,16 @@ fun! s:NetOptionRestore()
   endif
   unlet w:netoptionsave
 
-  if exists("w:acdkeep")  |let &acd    = w:acdkeep     |unlet w:acdkeep  |endif
+  if exists("&acd")
+   if exists("w:acdkeep") |let &acd    = w:acdkeep     |unlet w:acdkeep  |endif
+  endif
   if exists("w:aikeep")   |let &ai     = w:aikeep      |unlet w:aikeep   |endif
   if exists("w:cikeep")   |let &ci     = w:cikeep      |unlet w:cikeep   |endif
   if exists("w:cinkeep")  |let &cin    = w:cinkeep     |unlet w:cinkeep  |endif
   if exists("w:cinokeep") |let &cino   = w:cinokeep    |unlet w:cinokeep |endif
   if exists("w:comkeep")  |let &com    = w:comkeep     |unlet w:comkeep  |endif
   if exists("w:cpokeep")  |let &cpo    = w:cpokeep     |unlet w:cpokeep  |endif
+  if exists("w:dirkeep")  |exe "lcd ".w:dirkeep        |unlet w:dirkeep  |endif
   if exists("w:fokeep")   |let &fo     = w:fokeep      |unlet w:fokeep   |endif
   if exists("w:gdkeep")   |let &gd     = w:gdkeep      |unlet w:gdkeep   |endif
   if exists("w:hidkeep")  |let &hidden = w:hidkeep     |unlet w:hidkeep  |endif
