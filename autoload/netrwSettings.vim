@@ -1,7 +1,7 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Mar 22, 2006
+" Date:		May 19, 2006
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	6
+" Version:	7
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -19,7 +19,7 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v6"
+let g:loaded_netrwSettings  = "v7"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
@@ -81,6 +81,8 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_ftp               = '.g:netrw_ftp
   put = 'let g:netrw_ftpmode           = '.g:netrw_ftpmode
   put = 'let g:netrw_ignorenetrc       = '.g:netrw_ignorenetrc
+  let shqline= line("$")
+  put = 'let g:netrw_shq...'
   put = 'let g:netrw_use_nt_rcp        = '.g:netrw_use_nt_rcp
   put = 'let g:netrw_win95ftp          = '.g:netrw_win95ftp
   let s:netrw_xfer_stop= line(".")
@@ -129,6 +131,14 @@ fun! netrwSettings#NetrwSettings()
   silent %s/= \([^0-9].*\)$/= '\1'/e
   silent %s/= $/= ''/e
   1
+
+  " Put in shq setting.
+  " (deferred so as to avoid the quote manipulation just preceding)
+  if g:netrw_shq == "'"
+   call setline(shqline,'let g:netrw_shq               = "'.g:netrw_shq.'"')
+  else
+   call setline(shqline,"let g:netrw_shq               = '".g:netrw_shq."'")
+  endif
 
   set nomod
 

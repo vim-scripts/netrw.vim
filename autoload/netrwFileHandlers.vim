@@ -1,8 +1,8 @@
 " netrwFileHandlers: contains various extension-based file handlers for
 "                    netrw's browsers' x command ("eXecute launcher")
 " Author:	Charles E. Campbell, Jr.
-" Date:		May 01, 2006
-" Version:	8
+" Date:		May 30, 2006
+" Version:	9
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -22,16 +22,41 @@ if exists("g:loaded_netrwFileHandlers") || &cp
 endif
 let s:keepcpo= &cpo
 set cpo&vim
-let g:loaded_netrwFileHandlers= "v8"
+let g:loaded_netrwFileHandlers= "v9"
 
 " ---------------------------------------------------------------------
 " netrwFileHandlers#Invoke: {{{1
 fun! netrwFileHandlers#Invoke(exten,fname)
 "  call Dfunc("netrwFileHandlers#Invoke(exten<".a:exten."> fname<".a:fname.">)")
+  let fname= a:fname
+  " list of supported special characters.  Consider rcs,v --- that can be
+  " supported with a NFH_rcsCOMMAv() handler
+  if a:fname =~ '[@:,$!=\-+%?;~]'
+   let specials= {
+\   '@' : 'AT',
+\   ':' : 'COLON',
+\   ',' : 'COMMA',
+\   '$' : 'DOLLAR',
+\   '!' : 'EXCLAMATION',
+\   '=' : 'EQUAL',
+\   '-' : 'MINUS',
+\   '+' : 'PLUS',
+\   '%' : 'PERCENT',
+\   '?' : 'QUESTION',
+\   ';' : 'SEMICOLON',
+\   '~' : 'TILDE'}
+   let fname= substitute(a:fname,'[@:,$!=\-+%?;~]','\=specials[submatch(0)]','ge')
+"   call Decho('fname<'.fname.'> done with dictionary')
+  endif
 
-  if a:exten != "" && exists("*s:NFH_".a:exten)
-"   call Decho("let ret= netrwFileHandlers#NFH_".a:exten.'("'.a:fname.'")')
-   exe "let ret= s:NFH_".a:exten.'("'.a:fname.'")'
+  if a:exten != "" && exists("*NFH_".a:exten)
+   " support user NFH_*() functions
+"   call Decho("let ret= netrwFileHandlers#NFH_".a:exten.'("'.fname.'")')
+   exe "let ret= NFH_".a:exten.'("'.fname.'")'
+  elseif a:exten != "" && exists("*s:NFH_".a:exten)
+   " use builtin-NFH_*() functions
+"   call Decho("let ret= netrwFileHandlers#NFH_".a:exten.'("'.fname.'")')
+   exe "let ret= s:NFH_".a:exten.'("'.fname.'")'
   endif
   
 "  call Dret("netrwFileHandlers#Invoke 0 : ret=".ret)

@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 May 12
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Jun 08
 >
 		NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
 <
@@ -207,12 +207,23 @@ VARIABLES						*netrw-variables*
  *g:netrw_ftpmode*	="binary"				    (default)
 			="ascii"
 
- *g:netrw_ignorenetrc*	=0 (default)
+ *g:netrw_ignorenetrc*	=0 (default for linux, cygwin)
 			=1 If you have a <.netrc> file but it doesn't work and
 			   you want it ignored, then set this variable as shown.
+			   (default for Windows + cmd.exe)
+
+ *g:netrw_nogx*		if this variable exists, then the "gx" map will not
+ 			be available.
 
  *g:netrw_uid*		(ftp) user-id,      retained on a per-session basis
  *g:netrw_passwd*	(ftp) password,     retained on a per-session basis
+
+ *g:netrw_shq*          = "'" for Unix/Linux systems (ie. a single quote)
+			= "'" for Windows + cygwin systems (ie. a single quote)
+                        = '"' for Windows systems, not using cygwin
+			      (ie. a double quote)
+			Controls the quoting character used during scp and ftp
+			commands.
 
  *g:netrw_win95ftp*	=1 if using Win95, will remove four trailing blank
 			   lines that o/s's ftp "provides" on transfers
@@ -267,11 +278,13 @@ series of commands (typically ftp) which it issues to an external program
 from/written to a temporary file (under Unix/Linux, /tmp/...) which the
 <netrw.vim> script will clean up.
 
-						*netrw-putty* *netrw-pscp*
+				*netrw-putty* *netrw-pscp* *netrw-psftp*
 One may modify any protocol's implementing external application by setting a
 variable (ex. scp uses the variable g:netrw_scp_cmd, which is defaulted to
 "scp -q").  As an example, consider using PuTTY: >
-	let g:netrw_scp_cmd= '"c:\Program Files\PuTTY\pscp.exe" -q -batch'
+
+	let g:netrw_scp_cmd = '"c:\Program Files\PuTTY\pscp.exe" -q -batch'
+	let g:netrw_sftp_cmd= '"c:\Program Files\PuTTY\psftp.exe"'
 <
 Ftp, an old protocol, seems to be blessed by numerous implementations.
 Unfortunately, some implementations are noisy (ie., add junk to the end of the
@@ -901,7 +914,7 @@ DIRECTORY EXPLORING COMMANDS	*netrw-nexplore* *netrw-vexplore*
      :Hexplore[!]  [dir]... Horizontal Split & Explore              *:Hexplore*
      :Vexplore[!]  [dir]... Vertical   Split & Explore              *:Vexplore*
 
-     Used with :Explore **/pattern :
+     Used with :Explore **/pattern : (also see |netrw-starstar|)
      :Nexplore............. go to next matching file                *:Nexplore*
      :Pexplore............. go to previous matching file            *:Pexplore*
 
@@ -980,7 +993,7 @@ however, Explore will also search subdirectories as well as the current
 directory.
 
 
-REFRESHING THE LISTING					*netrw-ctrl-l*
+REFRESHING THE LISTING				*netrw-ctrl-l* *netrw-ctrl_l*
 
 To refresh either a local or remote directory listing, press ctrl-l (<c-l>) or
 hit the <cr> when atop the ./ directory entry in the listing.  One may also
@@ -1121,21 +1134,30 @@ One may rename a block of files and directories by selecting them with
 the V (|linewise-visual|).
 
 
-HIDING FILES OR DIRECTORIES				*netrw-a*
+HIDING FILES OR DIRECTORIES			*netrw-a* *netrw-hiding*
 
 Netrw's browsing facility allows one to use the hiding list in one of three
 ways: ignore it, hide files which match, and show only those files which
 match.  The "a" map allows the user to cycle about these three ways.
 
 The g:netrw_list_hide variable holds a comma delimited list of patterns (ex.
-\.obj) which specify the hiding list. (also see |netrw-ctrl-h|)  To set the hiding
-list, use the <c-h> map.  As an example, to hide files which begin with a ".",
-one may use the <c-h> map to set the hiding list to '^\..*' (or one may put
-let g:netrw_list_hide= '^\..*' in one's <.vimrc>).  One may then use the "a"
-key to show all files, hide matching files, or to show only the matching
+\.obj) which specify the hiding list. (also see |netrw-ctrl-h|)  To set the
+hiding list, use the <c-h> map.  As an example, to hide files which begin with
+a ".", one may use the <c-h> map to set the hiding list to '^\..*' (or one may
+put let g:netrw_list_hide= '^\..*' in one's <.vimrc>).  One may then use the
+"a" key to show all files, hide matching files, or to show only the matching
 files.
 
+	Example: ^.*\.[ch]
+		This hiding list command will hide/show all *.c and *.h files.
 
+	Example: ^.*\.c,^.*\.h
+		This hiding list command will also hide/show all *.c and *.h
+		files.
+
+Don't forget to use the "a" map to select the normal/hiding/show mode you want!
+
+						*netrw-ctrl_h*
 EDIT FILE OR DIRECTORY HIDING LIST		*netrw-ctrl-h* *netrw-edithide*
 
 The "<ctrl-h>" map brings up a requestor allowing the user to change the
@@ -1238,8 +1260,9 @@ window and cursor at the right, have
 
 in your <.vimrc>.
 
-
+						*netrw_gx*
 CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler* *gx*
+						(also see |netrw_filehandler|)
 
 Certain files, such as html, gif, jpeg, (word/office) doc, etc, files, are
 best seen with a special handler (ie. a tool provided with your computer).
@@ -1247,7 +1270,8 @@ Netrw allows one to invoke such special handlers by: >
 
 	* when Exploring, hit the "x" key
 	* when editing, hit gx with the cursor atop the special filename
-<
+<	  (not available if the |g:netrw_nogx| variable exists)
+
 Netrw determines which special handler by the following method:
 
   * if |g:netrw_browsex_viewer| exists, then it will be used to attempt to
@@ -1271,21 +1295,40 @@ OpenOffice (*.sfx), visualization (*.jpg, *.gif, etc), and PostScript (*.ps,
 *.eps) can be handled.
 
 							*netrw_filehandler*
-The netrwFileHandler applies a user-defined function to a file, based on its
-extension.  Of course, the handler function must exist for it to be called!
+
+The "x" map applies a function to a file, based on its extension.  Of course,
+the handler function must exist for it to be called!
 >
  Ex. mypgm.html   x ->
-                  netrwFileHandler_html("scp://user@host/some/path/mypgm.html")
+                  NFH_html("scp://user@host/some/path/mypgm.html")
 <
-See the <plugin/netrwFileHandlers.vim> for an example of how to handle an html
-file with mozilla.
+Users may write their own netrw File Handler functions to support more
+suffixes with special handling.  See <plugin/netrwFileHandlers.vim> for
+examples on how to make file handler functions.   As an example: >
 
-One may write custom netrwFileHandlers; please look at the >
+	" NFH_suffix(filename)
+	fun! NFH_suffix(filename)
+	..do something special with filename..
+	endfun
+<
+These functions need to be defined in some file in your .vim/plugin
+(vimfiles\plugin) directory.  Vim's function names may not have punctuation
+characters (except for the underscore) in them.  To support suffices that
+contain such characters, netrw will first convert the suffix using the
+following table: >
 
-	plugin/netrwFileHandlers.vim
+    @ -> AT       ! -> EXCLAMATION    % -> PERCENT  
+    : -> COLON    = -> EQUAL          ? -> QUESTION 
+    , -> COMMA    - -> MINUS          ; -> SEMICOLON
+    $ -> DOLLAR   + -> PLUS           ~ -> TILDE    
+<    
+So, for example: >
 
-script for examples.  If its likely to be generally useful, please feel free
-to forward a copy to me for future inclusion in the distribution.
+	file.rcs,v  ->  NFH_rcsCOMMAv()
+<
+If more such translations are necessary, please send me email: >
+		NdrOchip at ScampbellPfamily.AbizM - NOSPAM
+with a request.
 
 
 MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY	*netrw-c* *netrw-curdir*
@@ -1483,17 +1526,45 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 11. History						*netrw-history* {{{1
 
-	v99: May 09, 2006 * g:netrw_browse_split=3 for opening files in new
-	                    tabs implemented.
-	     May 12, 2006 * deletes temporary file at end of NetRead()
-	                  * visual mode based Obtain implemented
-			  * added -complete=dir to the various Explore
-			    commands
-	v98: May 02, 2006 * the "p" key didn't work properly when the browsing
-	                    directory name had spaces in it.
-	v97: May 01, 2006 * exists("&acd") now used to determine if
-	                    the 'acd' option exists
-			  * "obtain" now works again under Windows
+	v100: May 14, 2006 * when using Windows and shell==cmd.exe, the
+	                     default for g:netrw_ignorenetrc is now 1
+			   * bugfix: unwanted ^Ms now removed
+			     (affected shell==cmd.exe - Windows)
+			   * added Bookmarks and History to the menu
+			   * an error message about non-existing
+			     w:netrw_longlist was appearing during attempts to
+			     Explore fixed
+			   * g:netrw_shq now available to make netrw use
+			     specified style of quotes for commands
+	     May 29, 2006  * user NFH_*() functions were inadvertently being
+			     ignored
+			   * fixed a Windows non-cygwin ftp handling problem.
+			   * hiding pattern candidate separators included some
+			     characters it shouldn't have (tnx to Osei Poku)
+	     Jun 01, 2006  * for browsing, netrw was supposed to use "dir"
+	                     instead of "ls -lF" when using
+			     ftp+non-cygwin+windows.  Fixed.
+			   * an inadvertently left-in-place debugging statement
+			     was preventing use of the "x" key with browsing.
+	     Jun 05, 2006  * g:netrw_nogx available to prevent making the gx
+	                     map (see |g:netrw_nogx|)
+			   * bugfix, Explore woulnd't change directory
+			     properly (vim ., :Explore subdirname)
+	     Jun 06, 2006  * moved history to 2nd line in Netrw menu
+	                   * fixed delete for unix-based systems
+	     Jun 07, 2006  * x key now works for windows-noncygwin-ftp
+	     Jun 08, 2006  * Explore */pat and **//pat now wraps
+	v99: May 09, 2006  * g:netrw_browse_split=3 for opening files in new
+	                     tabs implemented.
+	     May 12, 2006  * deletes temporary file at end of NetRead()
+	                   * visual mode based Obtain implemented
+			   * added -complete=dir to the various Explore
+			     commands
+	v98: May 02, 2006  * the "p" key didn't work properly when the browsing
+	                     directory name had spaces in it.
+	v97: May 01, 2006  * exists("&acd") now used to determine if
+	                     the 'acd' option exists
+			   * "obtain" now works again under Windows
 	v96: * bugfix - the |'acd'| option is not always defined but is
 	       now bypassed only when it is
 	v95: * bugfix - Hiding mode worked correctly (don't show any file
