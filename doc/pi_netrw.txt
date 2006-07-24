@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Jun 08
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Jul 24
 >
 		NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
 <
@@ -113,7 +113,7 @@ and has lines resembling >
 	...
 	default          login USERID password "PASSWORD"
 <
-How about browsing -- ie. you just want to look around before editing a
+Now about browsing -- ie. when you just want to look around before editing a
 file.  For browsing on your current host, just "edit" a directory: >
 
 	vim .
@@ -140,8 +140,9 @@ CONTROLLING EXTERNAL APPLICATIONS			*netrw-externapp*
 	   dav:    *g:netrw_dav_cmd*  = "cadaver"
 	 fetch:  *g:netrw_fetch_cmd*  = "fetch -o"    if fetch is available
 	   ftp:    *g:netrw_ftp_cmd*  = "ftp"
-          http:   *g:netrw_http_cmd*  = "fetch -o"    if fetch is available
-	  http:    g:netrw_http_cmd   = "wget -q -O"  If wget  is available
+	  http:   *g:netrw_http_cmd*  = "curl -o"     if      curl  is available
+	  http:    g:netrw_http_cmd   = "wget -q -O"  else if wget  is available
+          http:    g:netrw_http_cmd   = "fetch -o"    else if fetch is available
 	   rcp:    *g:netrw_rcp_cmd*  = "rcp"
 	 rsync:  *g:netrw_rsync_cmd*  = "rsync -a"
 	   scp:    *g:netrw_scp_cmd*  = "scp -q"
@@ -177,7 +178,8 @@ WRITING						*netrw-write* *netrw-nwrite*
 DIRECTORY LISTING					*netrw-dirlist*
 	:Nread [protocol]://[user]@hostname/path/
 
- CHANGING USERID AND PASSWORD				*netrw-chgup*
+						*netrw-login* *netrw-password*
+ CHANGING USERID AND PASSWORD			*netrw-chgup* *netrw-userpass*
 	Attempts to use ftp will prompt you for a user-id and a password.
 	These will be saved in g:netrw_uid and g:netrw_passwd Subsequent uses
 	of ftp will re-use those.  If you need to use a different user id
@@ -212,15 +214,18 @@ VARIABLES						*netrw-variables*
 			   you want it ignored, then set this variable as shown.
 			   (default for Windows + cmd.exe)
 
+ *g:netrw_menu*		=0 disable netrw's menu
+			=1 (default) netrw's menu enabled
+
  *g:netrw_nogx*		if this variable exists, then the "gx" map will not
- 			be available.
+			be available (see |g:netrw-gx|)
 
  *g:netrw_uid*		(ftp) user-id,      retained on a per-session basis
  *g:netrw_passwd*	(ftp) password,     retained on a per-session basis
 
- *g:netrw_shq*          = "'" for Unix/Linux systems (ie. a single quote)
+ *g:netrw_shq*		= "'" for Unix/Linux systems (ie. a single quote)
 			= "'" for Windows + cygwin systems (ie. a single quote)
-                        = '"' for Windows systems, not using cygwin
+			= '"' for Windows systems, not using cygwin
 			      (ie. a double quote)
 			Controls the quoting character used during scp and ftp
 			commands.
@@ -679,6 +684,7 @@ MAPS								*netrw-maps*
      :Sexplore[!] [dir] Split & Explore directory ...............|netrw-explore|
      :Hexplore[!] [dir] Horizontal Split & Explore...............|netrw-explore|
      :Vexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
+     :Texplore[!] [dir] Tab & Explore............................|netrw-explore|
      :Pexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
      :Nexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
      :NetrwSettings.............................................|netrw-settings|
@@ -905,14 +911,16 @@ If either of these options are present when browsing is attempted, netrw
 will change them by using noacd and removing the ta suboptions from the
 |'formatoptions'|.
 
-				*netrw-explore*  *netrw-pexplore*
-				*netrw-hexplore* *netrw-sexplore*
-DIRECTORY EXPLORING COMMANDS	*netrw-nexplore* *netrw-vexplore*
+			*netrw-explore*  *netrw-pexplore* *netrw-texplore*
+			*netrw-hexplore* *netrw-sexplore* *netrw-nexplore*
+			*netrw-vexplore*
+DIRECTORY EXPLORING COMMANDS 
 
      :Explore[!]   [dir]... Explore directory of current file       *:Explore*
      :Sexplore[!]  [dir]... Split&Explore directory of current file *:Sexplore*
      :Hexplore[!]  [dir]... Horizontal Split & Explore              *:Hexplore*
      :Vexplore[!]  [dir]... Vertical   Split & Explore              *:Vexplore*
+     :Texplore     [dir]... Tab              & Explore              *:Texplore*
 
      Used with :Explore **/pattern : (also see |netrw-starstar|)
      :Nexplore............. go to next matching file                *:Nexplore*
@@ -932,6 +940,7 @@ DIRECTORY EXPLORING COMMANDS	*netrw-nexplore* *netrw-vexplore*
 :Hexplore! [dir] does an :Explore with |:aboveleft|  horizontal splitting.
 :Vexplore  [dir] does an :Explore with |:leftabove|  vertical splitting.
 :Vexplore! [dir] does an :Explore with |:rightbelow| vertical splitting.
+:Texplore  [dir] does a tabnew before generating the browser window
 
 By default, these commands use the current file's directory.  However, one
 may explicitly provide a directory (path) to use.
@@ -1260,7 +1269,7 @@ window and cursor at the right, have
 
 in your <.vimrc>.
 
-						*netrw_gx*
+						*netrw-gx*
 CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler* *gx*
 						(also see |netrw_filehandler|)
 
@@ -1467,6 +1476,20 @@ help on what each of the variables do.
 	    How do I do that?
 
 		let g:netrw_keepdir= 0
+	
+	P7. I use Chinese (or other non-ascii) characters in my filenames, and
+	    netrw (Explore, Sexplore, Hexplore, etc) doesn't display them!
+
+		(taken from an answer provided by Wu Yongwei on the vim
+		mailing list)
+		I now see the problem. You code page is not 936, right? Vim
+		seems only able to open files with names that are valid in the
+		current code page, as are many other applications that do not
+		use the Unicode version of Windows APIs. This is an OS-related
+		issue. You should not have such problems when the system
+		locale uses UTF-8, such as modern Linux distros.
+
+		(...it is one more reason to recommend that people use utf-8!)
 
 
 ==============================================================================
@@ -1516,16 +1539,29 @@ which is loaded automatically at startup (assuming :set nocp).
 	   in attempting to read/write your file over the network.
 
 	   To save the file, use >
-	   	:wincmd j
+		:wincmd j
 		:set bt=
 		:w! DBG
-<	   Please send that information to <netrw.vim>'s maintainer,
-
+<	   Please send that information to <netrw.vim>'s maintainer, >
 		NdrOchip at ScampbellPfamily.AbizM - NOSPAM
-
+<
 ==============================================================================
 11. History						*netrw-history* {{{1
 
+	v102: Jun 15, 2006 * chgd netrwPlugin to call netrw#LocalBrowseCheck()
+			   * bugfix: g:netrw_keepdir==0 had stopped working
+	      Jul 06, 2006 * bugfix: NetOptionSave/Restore now saves/restores
+	                     the unnamed register (|registers|)
+	      Jul 07, 2006 * |g:netrw_menu| support included
+	      Jul 13, 2006 * :Texplore command implemented
+	      Jul 17, 2006 * NetSplit and (Local|Net)BrowseChgDir() were both
+	                     splitting windows.  This affected o, v, and
+			     g:netrw_browse_split.
+	      Jul 20, 2006 * works around wildignore setting (was causing
+	                     netrw's local browser not to list wildignore'd
+			     files)
+	      Jul 24, 2006 * <leftmouse> acts as a <cr> for selecting a file
+	                     <rightmouse> acts as a <del> for deleting a file
 	v100: May 14, 2006 * when using Windows and shell==cmd.exe, the
 	                     default for g:netrw_ignorenetrc is now 1
 			   * bugfix: unwanted ^Ms now removed
@@ -1533,7 +1569,7 @@ which is loaded automatically at startup (assuming :set nocp).
 			   * added Bookmarks and History to the menu
 			   * an error message about non-existing
 			     w:netrw_longlist was appearing during attempts to
-			     Explore fixed
+			     Explore (fixed)
 			   * g:netrw_shq now available to make netrw use
 			     specified style of quotes for commands
 	     May 29, 2006  * user NFH_*() functions were inadvertently being

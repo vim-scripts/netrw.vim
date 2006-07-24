@@ -1,7 +1,7 @@
 " netrwPlugin.vim: Handles file transfer and remote directory listing across a network
-"            PLUGIN PORTION
-" Date:		Jun 05, 2006
-" Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
+"            PLUGIN SECTION
+" Date:		Jul 18, 2006
+" Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
@@ -19,9 +19,11 @@
 
 " ---------------------------------------------------------------------
 " Load Once: {{{1
-if exists("g:loaded_netrw")
+if &cp || exists("g:loaded_netrwPlugin")
  finish
 endif
+let g:loaded_netrwPlugin = 1
+let s:keepcpo            = &cpo
 if v:version < 700
  echohl WarningMsg | echo "***netrw*** you need vim version 7.0 for this version of netrw" | echohl None
  finish
@@ -64,6 +66,7 @@ com! -nargs=? -bar -bang -count=0 -complete=dir	Explore		call netrw#Explore(<cou
 com! -nargs=? -bar -bang -count=0 -complete=dir	Sexplore	call netrw#Explore(<count>,1,0+<bang>0,<q-args>)
 com! -nargs=? -bar -bang -count=0 -complete=dir	Hexplore	call netrw#Explore(<count>,1,2+<bang>0,<q-args>)
 com! -nargs=? -bar -bang -count=0 -complete=dir	Vexplore	call netrw#Explore(<count>,1,4+<bang>0,<q-args>)
+com! -nargs=? -bar       -count=0 -complete=dir	Texplore	call netrw#Explore(<count>,0,6        ,<q-args>)
 com! -nargs=? -bar -bang			Nexplore	call netrw#Explore(-1,0,0,<q-args>)
 com! -nargs=? -bar -bang			Pexplore	call netrw#Explore(-2,0,0,<q-args>)
 
@@ -85,7 +88,7 @@ fun! s:LocalBrowse(dirname)
   " the BufEnter event causes triggering when attempts to write to
   " the DBG buffer are made.
   if isdirectory(a:dirname)
-   silent! call netrw#DirBrowse(a:dirname)
+   silent! call netrw#LocalBrowseCheck(a:dirname)
   endif
   " not a directory, ignore it
 endfun

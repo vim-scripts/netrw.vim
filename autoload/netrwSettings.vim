@@ -1,7 +1,7 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		May 19, 2006
+" Date:		Jul 07, 2006
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	7
+" Version:	8
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -19,7 +19,7 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v7"
+let g:loaded_netrwSettings  = "v8"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
@@ -109,6 +109,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_local_rmdir       = '.g:netrw_local_rmdir
   put = 'let g:netrw_longlist          = '.g:netrw_longlist
   put = 'let g:netrw_maxfilenamelen    = '.g:netrw_maxfilenamelen
+  put = 'let g:netrw_menu              = '.g:netrw_menu
   put = 'let g:netrw_mkdir_cmd         = '.g:netrw_mkdir_cmd
   put = 'let g:netrw_rename_cmd        = '.g:netrw_rename_cmd
   put = 'let g:netrw_rm_cmd            = '.g:netrw_rm_cmd
