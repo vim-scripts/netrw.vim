@@ -1,17 +1,20 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Jul 24
->
-		NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
-<
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Aug 31
+
+	    -----------------------------------------------------
+	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
+	    -----------------------------------------------------
+
 
 *dav*           *http*          *network*       *rcp*           *scp*
 *fetch*         *netrw*         *Nread*         *rsync*         *sftp*
 *ftp*           *netrw.vim*     *Nwrite*        *netrw-file*
 
 ==============================================================================
-0. Contents						*netrw-contents*
+1. Contents						*netrw-contents*
 
-1.  Starting With Netrw..................................|netrw-start|
-2.  Netrw Reference......................................|netrw-ref|
+1.  Contents.............................................|netrw-contents|
+2.  Starting With Netrw..................................|netrw-start|
+3.  Netrw Reference......................................|netrw-ref|
       CONTROLLING EXTERNAL APPLICATIONS..................|netrw-externapp|
       READING............................................|netrw-read|
       WRITING............................................|netrw-write|
@@ -19,14 +22,14 @@
       CHANGING THE USERID AND PASSWORD...................|netrw-chgup|
       VARIABLES..........................................|netrw-variables|
       PATHS..............................................|netrw-path|
-3.  Network-Oriented File Transfer.......................|netrw-xfer|
+4.  Network-Oriented File Transfer.......................|netrw-xfer|
       NETRC..............................................|netrw-netrc|
       PASSWORD...........................................|netrw-passwd|
-4.  Activation...........................................|netrw-activate|
-5.  Transparent File Transfer............................|netrw-transparent|
-6.  Ex Commands..........................................|netrw-ex|
-7.  Variables and Options................................|netrw-var|
-8.  Directory Browsing...................................|netrw-browse| {{{1
+5.  Activation...........................................|netrw-activate|
+6.  Transparent File Transfer............................|netrw-transparent|
+7.  Ex Commands..........................................|netrw-ex|
+8.  Variables and Options................................|netrw-var|
+9.  Directory Browsing...................................|netrw-browse| {{{1
       Maps...............................................|netrw-maps|
       Exploring..........................................|netrw-explore-cmds|
       Quick Reference Commands Table.....................|netrw-browse-cmds|
@@ -45,23 +48,24 @@
       Hiding Files Or Directories........................|netrw-a|
       Edit File Or Directory Hiding List.................|netrw-ctrl-h|
       Browsing With A Horizontally Split Window..........|netrw-o|
+      Browsing With A Vertically Split Window............|netrw-v|
+      Browsing With A New Tab............................|netrw-t|
       Preview Window.....................................|netrw-p|
       Selecting Sorting Style............................|netrw-s|
       Editing The Sorting Sequence.......................|netrw-S|
       Reversing Sorting Order............................|netrw-r|
       Changing To A Predecessor Directory................|netrw-u|
       Changing To A Successor Directory..................|netrw-U|
-      Browsing With A Vertically Split Window............|netrw-v|
       Customizing Browsing With A User Function..........|netrw-x|
       Making The Browsing Directory The Current Directory|netrw-c|
       Bookmarking A Directory............................|netrw-b| |netrw-Nb|
       Changing To A Bookmarked Directory.................|netrw-B| |netrw-NB|
       Listing Bookmarks And History......................|netrw-q|
       Improving Directory Browsing.......................|netrw-listhack| }}}1
-9.  Problems and Fixes...................................|netrw-problems|
-10. Debugging............................................|netrw-debug|
-11. History..............................................|netrw-history|
-12. Credits..............................................|netrw-credits|
+10. Problems and Fixes...................................|netrw-problems|
+11. Debugging............................................|netrw-debug|
+12. History..............................................|netrw-history|
+13. Credits..............................................|netrw-credits|
 
 The Netrw plugin is generally sourced automatically as it is a
 |standard-plugin|.  That said, to make use of netrw, one must
@@ -79,7 +83,7 @@ in your <.vimrc> file: >
 {Vi does not have any of this}
 
 ==============================================================================
-1. Starting With Netrw						*netrw-start*
+2. Starting With Netrw						*netrw-start*
 
 Netrw makes reading, writing, and browsing over a network connection easy!
 First, make sure that you have plugins enabled, so you'll need to have at
@@ -131,7 +135,7 @@ There's more protocols supported than scp and ftp, too: see the next
 section, |netrw-externapp|.
 
 ==============================================================================
-2. Netrw Reference						*netrw-ref*
+3. Netrw Reference						*netrw-ref*
 
 CONTROLLING EXTERNAL APPLICATIONS			*netrw-externapp*
 
@@ -261,7 +265,7 @@ file using root-relative paths, use the full path:
 <
 
 ==============================================================================
-3. Network-Oriented File Transfer				*netrw-xfer*
+4. Network-Oriented File Transfer				*netrw-xfer*
 
 Network-oriented file transfer under Vim is implemented by a VimL-based script
 (<netrw.vim>) using plugin techniques.  It currently supports both reading and
@@ -411,7 +415,7 @@ However, |netrw-listhack| can help with this problem.
 
 
 ==============================================================================
-4. Activation						*netrw-activate*
+5. Activation						*netrw-activate*
 
 Network-oriented file transfers are available by default whenever Vim's
 |'nocompatible'| mode is enabled.  The <netrw.vim> file resides in your
@@ -426,7 +430,7 @@ up vim.  I suggest that, at a minimum, you have at least the following in your
 <
 
 ==============================================================================
-5. Transparent File Transfer				*netrw-transparent*
+6. Transparent File Transfer				*netrw-transparent*
 
 Transparent file transfers occur whenever a regular file read or write
 (invoked via an |:autocmd| for |BufReadCmd| or |BufWriteCmd| events) is made.
@@ -441,7 +445,7 @@ such as netrw.
 
 
 ==============================================================================
-6. Ex Commands						*netrw-ex*
+7. Ex Commands						*netrw-ex*
 
 The usual read/write commands are supported.  There are also a few
 additional commands available.  Often you won't need to use Nw or
@@ -481,7 +485,7 @@ see |netrw-urls|).
 
 
 ==============================================================================
-7. Variables and Options			*netrw-options* *netrw-var*
+8. Variables and Options			*netrw-options* *netrw-var*
 
 The script <netrw.vim> uses several variables which can affect <netrw.vim>'s
 behavior.  These variables typically may be set in the user's <.vimrc> file:
@@ -651,7 +655,7 @@ itself:
 >
 
 ==============================================================================
-8. Directory Browsing	*netrw-browse* *netrw-dir* *netrw-list* *netrw-help*
+9. Directory Browsing	*netrw-browse* *netrw-dir* *netrw-list* *netrw-help*
 
 MAPS								*netrw-maps*
      <F1>.............Help.......................................|netrw-help|
@@ -674,6 +678,7 @@ MAPS								*netrw-maps*
      R................Renaming Files or Directories..............|netrw-R|
      s................Selecting Sorting Style....................|netrw-s|
      S................Editing the Sorting Sequence...............|netrw-S|
+     t................Browsing with a new tab....................|netrw-t|
      u................Changing to a Predecessor Directory........|netrw-u|
      U................Changing to a Successor Directory..........|netrw-U|
      v................Browsing with a Vertical Split.............|netrw-v|
@@ -718,10 +723,12 @@ QUICK REFERENCE COMMANDS TABLE				*netrw-browse-cmds*
 	   O	Obtain a file specified by cursor |netrw-O|
 	   p	Preview the file |netrw-p|
 	   P	Browse in the previously used window |netrw-P|
+	   q	List bookmarked directories and history |netrw-q|
 	   r	Reverse sorting order |netrw-r|
 	   R	Rename the designed file(s)/directory(ies) |netrw-R|
 	   s	Select sorting style: by name, time, or file size |netrw-s|
 	   S	Specify suffix priority for name-sorting |netrw-S|
+	   t	Enter the file/directory under the cursor in a new tab|netrw-t|
 	   u	Change to recently-visited directory |netrw-u|
 	   U	Change to subsequently-visited directory |netrw-U|
 	   v	Enter the file/directory under the cursor in a new browser
@@ -808,7 +815,7 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				 default: (if ssh is executable)
 				          "ssh HOSTNAME ls -FLa"
 
-  *g:netrw_longlist*	        Set the default listing style:
+  *g:netrw_liststyle*		Set the default listing style:
                                 = 0: thin listing (one file per line)
                                 = 1: long listing (one file per line with time
 				     stamp information and file size)
@@ -1188,7 +1195,29 @@ new window and cursor at the bottom, have
 
 	let g:netrw_alto = 1
 
-in your <.vimrc>.
+in your <.vimrc>.  (also see |netrw-t| |netrw-v| |g:netrw_alto|)
+
+
+BROWSING WITH A VERTICALLY SPLIT WINDOW				*netrw-v*
+
+Normally one enters a file or directory using the <cr>.  However, the "v" map
+allows one to open a new window to hold the new directory listing or file.  A
+vertical split is used.  (for horizontal splitting, see |netrw-o|)
+
+Normally, the v key splits the window vertically with the new window and
+cursor at the left.  To change to splitting the window vertically with the new
+window and cursor at the right, have
+
+	let g:netrw_altv = 1
+
+in your <.vimrc>.  (also see: |netrw-o| |netrw-t| |g:netrw_altv|)
+
+
+BROWSING WITH A NEW TAB					*netrw-t*
+
+Normally one enters a file or directory using the <cr>.  The "t" map
+allows one to open a new window hold the new directory listing or file in a
+new tab. (also see: |netrw-o| |netrw-v|)
 
 
 PREVIEW WINDOW					*netrw-p* *netrw-preview*
@@ -1253,21 +1282,6 @@ CHANGING TO A SUCCESSOR DIRECTORY		*netrw-U* *netrw-downdir*
 With the "U" map, one can change to a later directory (successor).
 This map is the opposite of the "u" map. (see |netrw-u|)  Use the
 q map to list both the bookmarks and history. (see |netrw-q|)
-
-
-BROWSING WITH A VERTICALLY SPLIT WINDOW				*netrw-v*
-
-Normally one enters a file or directory using the <cr>.  However, the "v" map
-allows one to open a new window to hold the new directory listing or file.  A
-vertical split is used.  (for horizontal splitting, see |netrw-o|)
-
-Normally, the v key splits the window vertically with the new window and
-cursor at the left.  To change to splitting the window vertically with the new
-window and cursor at the right, have
-
-	let g:netrw_altv = 1
-
-in your <.vimrc>.
 
 						*netrw-gx*
 CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler* *gx*
@@ -1414,7 +1428,7 @@ help on what each of the variables do.
 
 
 ==============================================================================
-9. Problems and Fixes						*netrw-problems*
+10. Problems and Fixes						*netrw-problems*
 
 	(This section is likely to grow as I get feedback)
 	(also see |netrw-debug|)
@@ -1457,7 +1471,7 @@ help on what each of the variables do.
 								*netrw-p4*
 	P4. I would like long listings to be the default.
 
-			let g:netrw_longlist=1
+			let g:netrw_liststyle= 1
 
 		Check out |netrw-browse-var| for more customizations that
 		you can set.
@@ -1493,7 +1507,7 @@ help on what each of the variables do.
 
 
 ==============================================================================
-10. Debugging						*netrw-debug*
+11. Debugging						*netrw-debug*
 
 The <netrw.vim> script is typically available as:
 >
@@ -1546,24 +1560,46 @@ which is loaded automatically at startup (assuming :set nocp).
 		NdrOchip at ScampbellPfamily.AbizM - NOSPAM
 <
 ==============================================================================
-11. History						*netrw-history* {{{1
+12. History						*netrw-history* {{{1
 
+	v103: Jul 26, 2006 * used Yakov Lerner's tip#1289 to improve netrw
+			     error message display
+			   * wide listings didn't handle files with backslashes
+			     in their names properly.  A symptom was an
+			     inability to open files.
+	      Aug 09, 2006 * included "t" mapping for opening tabbed windows,
+			    both for remote and local browsing
+			   * changed netrw_longlist to netrw_liststyle
+	      Aug 15, 2006 * fixed one of the NB maps
+	      Aug 22, 2006 * changed *Explore commands to use -nargs=* instead
+			     of -nargs=?.  Allows both -complete=dir _and_ the
+			     starstar arguments to work (-nargs=? seems to
+			     require one or the other).
+	      Aug 23, 2006 * copied all w:.. variables across splits to
+			     new windows
+	      Aug 25, 2006 * when g:netrw_browsex_viewer was '-'
+			     (see |g:netrw_browsex_viewer|) it wasn't causing
+			     netrwFileHandlers#Invoke() to be called as it
+			     was expected to.  (tnx Steve Dugaro)
+	      Aug 29, 2006 * changed NetBrowseX() to use "setlocal ... noswf"
+			     instead of "set ... noswf"  (tnx Benji Fisher)
+	      Aug 31, 2006 * tabs and fastbrowse<=1 didn't work together.
 	v102: Jun 15, 2006 * chgd netrwPlugin to call netrw#LocalBrowseCheck()
 			   * bugfix: g:netrw_keepdir==0 had stopped working
 	      Jul 06, 2006 * bugfix: NetOptionSave/Restore now saves/restores
-	                     the unnamed register (|registers|)
+			     the unnamed register (|registers|)
 	      Jul 07, 2006 * |g:netrw_menu| support included
 	      Jul 13, 2006 * :Texplore command implemented
 	      Jul 17, 2006 * NetSplit and (Local|Net)BrowseChgDir() were both
-	                     splitting windows.  This affected o, v, and
+			     splitting windows.  This affected o, v, and
 			     g:netrw_browse_split.
 	      Jul 20, 2006 * works around wildignore setting (was causing
-	                     netrw's local browser not to list wildignore'd
+			     netrw's local browser not to list wildignore'd
 			     files)
 	      Jul 24, 2006 * <leftmouse> acts as a <cr> for selecting a file
-	                     <rightmouse> acts as a <del> for deleting a file
+			     <rightmouse> acts as a <del> for deleting a file
 	v100: May 14, 2006 * when using Windows and shell==cmd.exe, the
-	                     default for g:netrw_ignorenetrc is now 1
+			     default for g:netrw_ignorenetrc is now 1
 			   * bugfix: unwanted ^Ms now removed
 			     (affected shell==cmd.exe - Windows)
 			   * added Bookmarks and History to the menu
@@ -1578,12 +1614,12 @@ which is loaded automatically at startup (assuming :set nocp).
 			   * hiding pattern candidate separators included some
 			     characters it shouldn't have (tnx to Osei Poku)
 	     Jun 01, 2006  * for browsing, netrw was supposed to use "dir"
-	                     instead of "ls -lF" when using
+			     instead of "ls -lF" when using
 			     ftp+non-cygwin+windows.  Fixed.
 			   * an inadvertently left-in-place debugging statement
 			     was preventing use of the "x" key with browsing.
 	     Jun 05, 2006  * g:netrw_nogx available to prevent making the gx
-	                     map (see |g:netrw_nogx|)
+			     map (see |g:netrw_nogx|)
 			   * bugfix, Explore woulnd't change directory
 			     properly (vim ., :Explore subdirname)
 	     Jun 06, 2006  * moved history to 2nd line in Netrw menu
@@ -1591,15 +1627,15 @@ which is loaded automatically at startup (assuming :set nocp).
 	     Jun 07, 2006  * x key now works for windows-noncygwin-ftp
 	     Jun 08, 2006  * Explore */pat and **//pat now wraps
 	v99: May 09, 2006  * g:netrw_browse_split=3 for opening files in new
-	                     tabs implemented.
+			     tabs implemented.
 	     May 12, 2006  * deletes temporary file at end of NetRead()
-	                   * visual mode based Obtain implemented
+			   * visual mode based Obtain implemented
 			   * added -complete=dir to the various Explore
 			     commands
 	v98: May 02, 2006  * the "p" key didn't work properly when the browsing
-	                     directory name had spaces in it.
+			     directory name had spaces in it.
 	v97: May 01, 2006  * exists("&acd") now used to determine if
-	                     the 'acd' option exists
+			     the 'acd' option exists
 			   * "obtain" now works again under Windows
 	v96: * bugfix - the |'acd'| option is not always defined but is
 	       now bypassed only when it is
@@ -1855,7 +1891,7 @@ which is loaded automatically at startup (assuming :set nocp).
 
 
 ==============================================================================
-11. Credits						*netrw-credits* {{{1
+12. Credits						*netrw-credits* {{{1
 
 	Vim editor	by Bram Moolenaar (Thanks, Bram!)
 	dav		support by C Campbell

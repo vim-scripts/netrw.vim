@@ -350,4 +350,4 @@ endfun
 let &cpo= s:keepcpo
 " ---------------------------------------------------------------------
 "  Modelines: {{{1
-"  vim: ts=4 fdm=marker
+"  vim: fdm=marker

@@ -1,7 +1,7 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Jul 07, 2006
+" Date:		Jul 28, 2006
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	8
+" Version:	9a	ASTRO-ONLY
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -19,7 +19,7 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v8"
+let g:loaded_netrwSettings  = "v9a"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
@@ -39,8 +39,8 @@ fun! netrwSettings#NetrwSettings()
 
   " these variables have the following default effects when they don't
   " exist (ie. have not been set by the user in his/her .vimrc)
-  if !exists("g:netrw_longlist")
-   let g:netrw_longlist= 0
+  if !exists("g:netrw_liststyle")
+   let g:netrw_liststyle= 0
    let g:netrw_list_cmd= "ssh HOSTNAME ls -FLa"
   endif
   if !exists("g:netrw_silent")
@@ -107,7 +107,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_list_hide         = '.g:netrw_list_hide
   put = 'let g:netrw_local_mkdir       = '.g:netrw_local_mkdir
   put = 'let g:netrw_local_rmdir       = '.g:netrw_local_rmdir
-  put = 'let g:netrw_longlist          = '.g:netrw_longlist
+  put = 'let g:netrw_liststyle         = '.g:netrw_liststyle
   put = 'let g:netrw_maxfilenamelen    = '.g:netrw_maxfilenamelen
   put = 'let g:netrw_menu              = '.g:netrw_menu
   put = 'let g:netrw_mkdir_cmd         = '.g:netrw_mkdir_cmd
@@ -143,7 +143,8 @@ fun! netrwSettings#NetrwSettings()
 
   set nomod
 
-  map <buffer> <silent> <F1> :call NetrwSettingHelp()<cr>
+  nmap <buffer> <silent> <F1>                       :call NetrwSettingHelp()<cr>
+  nnoremap <buffer> <silent> <leftmouse> <leftmouse>:call NetrwSettingHelp()<cr>
   let tmpfile= tempname()
   exe 'au BufWriteCmd	Netrw\ Settings	silent w! '.tmpfile.'|so '.tmpfile.'|call delete("'.tmpfile.'")|set nomod'
 endfun
