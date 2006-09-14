@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Aug 31
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Sep 14
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -58,8 +58,8 @@
       Changing To A Successor Directory..................|netrw-U|
       Customizing Browsing With A User Function..........|netrw-x|
       Making The Browsing Directory The Current Directory|netrw-c|
-      Bookmarking A Directory............................|netrw-b| |netrw-Nb|
-      Changing To A Bookmarked Directory.................|netrw-B| |netrw-NB|
+      Bookmarking A Directory............................|netrw-mb|
+      Changing To A Bookmarked Directory.................|netrw-gb|
       Listing Bookmarks And History......................|netrw-q|
       Improving Directory Browsing.......................|netrw-listhack| }}}1
 10. Problems and Fixes...................................|netrw-problems|
@@ -663,8 +663,8 @@ MAPS								*netrw-maps*
      <del>............Deleting Files or Directories..............|netrw-delete|
      -................Going Up...................................|netrw--|
      a................Hiding Files or Directories................|netrw-a|
-     b................Bookmarking a Directory....................|netrw-b|
-     B................Changing to a Bookmarked Directory.........|netrw-B|
+     mb...............Bookmarking a Directory....................|netrw-mb|
+     gb...............Changing to a Bookmarked Directory.........|netrw-gb|
      c................Make Browsing Directory The Current Dir....|netrw-c|
      d................Make A New Directory.......................|netrw-d|
      D................Deleting Files or Directories..............|netrw-D|
@@ -706,18 +706,14 @@ QUICK REFERENCE COMMANDS TABLE				*netrw-browse-cmds*
 	   a	Toggles between normal display, |netrw-a|
 		 hiding (suppress display of files matching g:netrw_list_hide)
 		 showing (display only files which match g:netrw_list_hide)
-	   b	bookmark current directory; use Nb if compact listing
-		 in use |netrw-b|
-	   B	go to previous bookmarked directory; use Nb if compact
-		 listing is in use |netrw-B|
+	   mb	bookmark current directory
+	   gb	go to previous bookmarked directory
 	   c	Make current browsing directory the current directory |netrw-c|
 	   d	Make a directory |netrw-d|
 	   D	Netrw will attempt to remove the file(s)/directory(ies) |netrw-D|
 	 <c-h>	Edit file hiding list |netrw-ctrl-h|
 	   i	Toggles between long and short listing |netrw-i|
 	 <c-l>	Causes Netrw to refresh the directory listing |netrw-ctrl-l|
-	  Nb	Same as b, but always available |netrw-Nb|
-	  NB	Same as B, but always available |netrw-NB|
 	   o	Enter the file/directory under the cursor in a new browser
 		 window.  A horizontal split is used. |netrw-o|
 	   O	Obtain a file specified by cursor |netrw-O|
@@ -742,11 +738,11 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
    ---				-----------
 < *g:netrw_alto*		change from above splitting to below splitting
 				by setting this variable (see |netrw-o|)
-				 default: =0
+				 default: =&sb           (see |'sb'|)
 
   *g:netrw_altv*		change from left splitting to right splitting
 				by setting this variable (see |netrw-v|)
-				 default: =0
+				 default: =&spr          (see |'spr'|)
 
   *g:netrw_browse_split*	when browsing, <cr> will open the file by:
 				=0: re-using the same window
@@ -819,7 +815,8 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
                                 = 0: thin listing (one file per line)
                                 = 1: long listing (one file per line with time
 				     stamp information and file size)
-				=2 : wide listing (multiple files in columns)
+				= 2: wide listing (multiple files in columns)
+				= 3: tree style listing
   *g:netrw_list_hide*		comma separated pattern list for hiding files
 				 default: ""
 
@@ -1087,14 +1084,10 @@ date of last modification for local directories.  With the long listing
 format, netrw is not able to recognize filenames which have trailing spaces.
 Use the thin listing format for such files.
 
-The wide listing format has a multi-column display of the various files in the
-netrw current directory, rather like the Unix "ls" presents.  In this mode the
-"b" and "B" maps are not available; instead, use Nb (|netrw-Nb|) and NB
-(|netrw-NB|).  The wide listing format uses two or more contiguous spaces to
-delineate filenames; when using that format, netrw won't be able to recognize
-or use filenames which have two or more contiguous spaces embedded in the name
-or any trailing spaces.  The thin listing format will, however, work with such
-files.
+The wide listing format uses two or more contiguous spaces to delineate
+filenames; when using that format, netrw won't be able to recognize or use
+filenames which have two or more contiguous spaces embedded in the name or any
+trailing spaces.  The thin listing format will, however, work with such files.
 
 
 MAKING A NEW DIRECTORY						*netrw-d*
@@ -1368,37 +1361,30 @@ set Vim's notion of the current directory to the netrw's current browsing
 directory.
 
 
-BOOKMARKING A DIRECTORY		*netrw-b* *netrw-bookmark* *netrw-bookmarks*
-							*netrw-Nb*
+BOOKMARKING A DIRECTORY		*netrw-mb* *netrw-bookmark* *netrw-bookmarks*
 One may easily "bookmark" a directory by using >
 
-	{cnt}b
+	{cnt}mb
 <
 Any count may be used.  One may use viminfo's "!" option to retain bookmarks
-between vim sessions.  See |netrw-B| for how to return to a bookmark and
+between vim sessions.  See |netrw-gb| for how to return to a bookmark and
 |netrw-q| for how to list them.
 
-When wide listing is in use (see |netrw-i|), then the b map is not available;
-instead, use {cnt}Nb.
 
-
-CHANGING TO A BOOKMARKED DIRECTORY			*netrw-NB* *netrw-B*
+CHANGING TO A BOOKMARKED DIRECTORY			*netrw-gb* 
 
 To change directory back to a bookmarked directory, use
 
-	{cnt}B
+	{cnt}gb
 
-Any count may be used to reference any of the bookmarks.  See |netrw-b| on
+Any count may be used to reference any of the bookmarks.  See |netrw-mb| on
 how to bookmark a directory and |netrw-q| on how to list bookmarks.
-
-When wide listing is in use (see |netrw-i|), then the B map is not available;
-instead, use {cnt}NB.
 
 
 LISTING BOOKMARKS AND HISTORY			*netrw-q* *netrw-listbookmark*
 
 Pressing "q" will list the bookmarked directories and directory traversal
-history (query). (see |netrw-b|, |netrw-B|, |netrw-u|, and |netrw-U|)
+history (query). (see |netrw-mb|, |netrw-gb|, |netrw-u|, and |netrw-U|)
 
 
 IMPROVING DIRECTORY BROWSING				*netrw-listhack*
@@ -1562,6 +1548,14 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v104: Sep 05, 2006 * as suggested by Rodolfo Borges, :Explore and
+	                     variants will position the cursor on the file
+			     just having been edited
+			   * changed default |g:netrw_sort_sequence| order
+			   * changed b, Nb to simply mb  (see |g:netrw-b|)
+			   * changed B, NB to simply gb  (see |g:netrw-gb|)
+			   * tree listing style (see |g:netrw_liststyle|)
+			   * attempts to retain the alternate file
 	v103: Jul 26, 2006 * used Yakov Lerner's tip#1289 to improve netrw
 			     error message display
 			   * wide listings didn't handle files with backslashes
