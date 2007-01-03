@@ -1,7 +1,7 @@
 " Language   : Netrw Remote-Directory Listing Syntax
 " Maintainer : Charles E. Campbell, Jr.
-" Last change: May 20, 2006
-" Version    : 8
+" Last change: Nov 27, 2006
+" Version    : 9
 " ---------------------------------------------------------------------
 
 " Syntax Clearing: {{{1
@@ -21,7 +21,8 @@ syn match  netrwDir		"\%(\S\+ \)*\S\+/"		contains=netrwClassify
 syn match  netrwDir		"^\S*/"				contains=netrwClassify
 syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"	contains=netrwDateSep skipwhite nextgroup=netrwTime
 syn match  netrwSymLink		"\%(\S\+ \)*\S\+@\ze\%(\s\{2,}\|$\)"  contains=netrwClassify
-syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" contains=netrwClassify
+syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" contains=netrwClassify,netrwTreeIgnore
+syn match  netrwTreeIgnore contained "^\%(| \)*"
 
 syn match  netrwClassify	"[*=|@/]\ze\%(\s\{2,}\|$\)"	contained
 syn match  netrwDateSep		"/"				contained

@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2006 Sep 14
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2007 Jan 03
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -41,7 +41,7 @@
       Going Up...........................................|netrw--|
       Browsing...........................................|netrw-cr|
       Obtaining A File...................................|netrw-O|
-      Thin, Long, and Wide Listings......................|netrw-i|
+      Thin, Long, Wide, and Tree Listings................|netrw-i|
       Making A New Directory.............................|netrw-d|
       Deleting Files Or Directories......................|netrw-D|
       Renaming Files Or Directories......................|netrw-move|
@@ -195,6 +195,9 @@ DIRECTORY LISTING					*netrw-dirlist*
 	:call NetUserPass("uid","password")	-- sets global uid and password
 
 VARIABLES						*netrw-variables*
+
+(see also: |netrw-browse-var||netrw-protocol||netrw-settings||netrw-var|)
+
  *b:netrw_lastfile*	last file Network-read/written retained on a per-buffer
 			basis		(supports plain :Nw )
 
@@ -210,6 +213,12 @@ VARIABLES						*netrw-variables*
 			value of this variable to see if the alternate ftp
 			method works for your setup.
 
+ *g:netrw_extracmd*	default: doesn't exist
+                        If this variable exists, then any string it contains
+			will be placed into the commands set to your ftp
+			client.  As an example:
+			  ="passive"
+
  *g:netrw_ftpmode*	="binary"				    (default)
 			="ascii"
 
@@ -222,7 +231,7 @@ VARIABLES						*netrw-variables*
 			=1 (default) netrw's menu enabled
 
  *g:netrw_nogx*		if this variable exists, then the "gx" map will not
-			be available (see |g:netrw-gx|)
+			be available (see |netrw-gx|)
 
  *g:netrw_uid*		(ftp) user-id,      retained on a per-session basis
  *g:netrw_passwd*	(ftp) password,     retained on a per-session basis
@@ -487,9 +496,10 @@ see |netrw-urls|).
 ==============================================================================
 8. Variables and Options			*netrw-options* *netrw-var*
 
-The script <netrw.vim> uses several variables which can affect <netrw.vim>'s
-behavior.  These variables typically may be set in the user's <.vimrc> file:
-(also see |netrw-settings|) >
+The <netrw.vim> script provides several variables which act as options to
+ffect <netrw.vim>'s behavior.  These variables typically may be set in the
+user's <.vimrc> file:
+(see also: |netrw-settings||netrw-browse-var||netrw-protocol||netrw-settings|) >
 
                         -------------
                         Netrw Options
@@ -570,16 +580,19 @@ variables listed below, and may be modified by the user.
     -------------------------------------------------------------------------
 <
 								*netrw-ftp*
-The first two options (netrw_ftp and NetReadFixup) both help with certain
-ftp's that give trouble otherwise.  In order to best understand how to use
-these options if ftp is giving you troubles, a bit of discussion follows on
-how netrw does ftp reads.
 
-The g:netrw_..._cmd variables specify the external program to use handle the
-associated protocol (rcp, ftp, etc), plus any options.
+The g:netrw_..._cmd options (|g:netrw_ftp_cmd| and |g:netrw_sftp_cmd|)
+specify the external program to use handle the ftp protocol.  They may
+include command line options (such as -p for passive mode).
 
-The g:netrw_list_cmd's HOSTNAME entry will be changed via substitution with
-whatever the current request is for a hostname.
+Browsing is supported by using the |g:netrw_list_cmd|; the substring
+"HOSTNAME" will be changed via substitution with whatever the current request
+is for a hostname.
+
+Two options (|g:netrw_ftp| and |netrw-fixup|) both help with certain ftp's
+that give trouble .  In order to best understand how to use these options if
+ftp is giving you troubles, a bit of discussion is provided on how netrw does
+ftp reads.
 
 For ftp, netrw typically builds up lines of one of the following formats in a
 temporary file:
@@ -590,15 +603,17 @@ temporary file:
        open machine [port]                    open machine [port]
        user userid password                   userid password
        [g:netrw_ftpmode]                      password
-       get filename tempfile                  [g:netrw_ftpmode]
+       [g:netrw_extracmd]                     [g:netrw_ftpmode]
+       get filename tempfile                  [g:netrw_extracmd]
                                               get filename tempfile >
   ---------------------------------------------------------------------
 <
+The |g:netrw_ftpmode| and |g:netrw_extracmd| are optional.
+
 Netrw then executes the lines above by use of a filter:
 >
 	:%! {g:netrw_ftp_cmd} -i [-n]
 <
-
 where
 	g:netrw_ftp_cmd is usually "ftp",
 	-i tells ftp not to be interactive
@@ -712,7 +727,7 @@ QUICK REFERENCE COMMANDS TABLE				*netrw-browse-cmds*
 	   d	Make a directory |netrw-d|
 	   D	Netrw will attempt to remove the file(s)/directory(ies) |netrw-D|
 	 <c-h>	Edit file hiding list |netrw-ctrl-h|
-	   i	Toggles between long and short listing |netrw-i|
+	   i	Cycle between thin, long, wide, and tree listings|netrw-i|
 	 <c-l>	Causes Netrw to refresh the directory listing |netrw-ctrl-l|
 	   o	Enter the file/directory under the cursor in a new browser
 		 window.  A horizontal split is used. |netrw-o|
@@ -1037,7 +1052,7 @@ Hitting the <cr> (the return key) will select the file or directory.
 Directories will themselves be listed, and files will be opened using the
 protocol given in the original read request.  
 
-  CAVEAT: There are three forms of listing (see |netrw-i|).  Netrw assumes
+  CAVEAT: There are four forms of listing (see |netrw-i|).  Netrw assumes
   that two or more spaces delimit filenames and directory names for the long
   and wide listing formats.  Thus, if your filename or directory name has two
   or more spaces embedded in it, or any trailing spaces, then you'll need to
@@ -1072,9 +1087,9 @@ Related topics:
    directory, see |g:netrw_keepdir|.
 
 
-THIN, LONG, AND WIDE LISTINGS					*netrw-i*
+THIN, LONG, WIDE, AND TREE LISTINGS				*netrw-i*
 
-The "i" map cycles between the thin, long, and wide listing formats.
+The "i" map cycles between the thin, long, wide, and tree listing formats.
 
 The short listing format gives just the files' and directories' names.
 
@@ -1088,6 +1103,9 @@ The wide listing format uses two or more contiguous spaces to delineate
 filenames; when using that format, netrw won't be able to recognize or use
 filenames which have two or more contiguous spaces embedded in the name or any
 trailing spaces.  The thin listing format will, however, work with such files.
+
+The tree listing format has a top directory followed by files and directories
+preceded by a "|".  One may open and close directories as usual.
 
 
 MAKING A NEW DIRECTORY						*netrw-d*
@@ -1412,6 +1430,8 @@ settings.  You may change any of their values; when you save the file, the
 settings therein will be used.  One may also press "?" on any of the lines for
 help on what each of the variables do.
 
+(see also: |netrw-browse-var||netrw-protocol||netrw-var||netrw-variables|)
+
 
 ==============================================================================
 10. Problems and Fixes						*netrw-problems*
@@ -1477,6 +1497,7 @@ help on what each of the variables do.
 
 		let g:netrw_keepdir= 0
 	
+								*netrw-p7*
 	P7. I use Chinese (or other non-ascii) characters in my filenames, and
 	    netrw (Explore, Sexplore, Hexplore, etc) doesn't display them!
 
@@ -1490,6 +1511,55 @@ help on what each of the variables do.
 		locale uses UTF-8, such as modern Linux distros.
 
 		(...it is one more reason to recommend that people use utf-8!)
+
+								*netrw-p8*
+	P8. I'm getting "ssh is not executable on your system" -- what do I
+	    do?
+
+		(Dudley Fox) Most people I know use putty for windows ssh.  It
+		is a free ssh/telnet application. You can read more about it
+		here:
+
+		http://www.chiark.greenend.org.uk/~sgtatham/putty/ Also:
+
+		(Marlin Unruh) This program also works for me. It's a single
+		executable, so he/she can copy it into the Windows\System32
+		folder and create a shortcut to it. 
+
+		(Dudley Fox) You might also wish to consider plink, as it
+		sounds most similar to what you are looking for. plink is an
+		application in the putty suite.
+
+           http://the.earth.li/~sgtatham/putty/0.58/htmldoc/Chapter7.html#plink
+
+	   	(Vissale Neang) Maybe you can try OpenSSH for windows, which
+		can be obtained from:
+
+		http://sshwindows.sourceforge.net/
+
+		It doesn't need the full Cygwin package. 
+
+	    	(Antoine Mechelynck) For individual Unix-like programs needed
+		for work in a native-Windows environment, I recommend getting
+		them from the GnuWin32 project on sourceforge if it has them:
+
+	    	    http://gnuwin32.sourceforge.net/
+
+	    	Unlike Cygwin, which sets up a Unix-like virtual machine on
+		top of Windows, GnuWin32 is a rewrite of Unix utilities with
+		Windows system calls, and its programs works quite well in the
+		cmd.exe "Dos box". 
+
+	    	(cec) To make proper use of these suggestions above, you will
+		need to modify the following user-settable variables in your
+		.vimrc:
+
+    	       	   |g:netrw_ssh_cmd| |g:netrw_list_cmd|  |g:netrw_mkdir_cmd|
+    	       	   |g:netrw_rm_cmd|  |g:netrw_rmdir_cmd| |g:netrw_rmf_cmd|
+
+		The first one (|g:netrw_ssh_cmd|) is the most important; most
+		of the others will use the string in g:netrw_ssh_cmd by
+		default.
 
 
 ==============================================================================
@@ -1548,12 +1618,34 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v107: Oct 12, 2006 * bypassed the autowrite option
+	      Oct 24, 2006 * handles automatic decompression of *.gz and *.bz2
+	                     files
+	      Nov 03, 2006 * Explore will highlight matching files when
+	                     **/pattern is used (and if the |'hls'| option
+			     is set)
+	      Nov 09, 2006 * a debugging line, when enabled, was inadvertently
+	                     bringing up help instead of simply reporting on
+			     list contents
+	      Nov 21, 2006 * tree listing improved (cursor remains put)
+	      Nov 27, 2006 * fixed b:netrw_curdir bug when repeated "i"s were
+	                     pressed.
+	      Dec 15, 2006 * considerable qty of changes, mostly to share more
+	                     code between local and remote browsing.  Includes
+			     support for tree-style listing for both remote
+			     and local browsing.
+	      Dec 15, 2006 * Included Peter Bengtsson's modifications to
+	                     support the Amiga.
+	v106: Sep 21, 2006 * removed old v:version<700 code as netrw now
+	                     requires vim 7.0
+			   * worked around a bug where register * was
+			     overwritten during local browsing
 	v104: Sep 05, 2006 * as suggested by Rodolfo Borges, :Explore and
 	                     variants will position the cursor on the file
 			     just having been edited
 			   * changed default |g:netrw_sort_sequence| order
-			   * changed b, Nb to simply mb  (see |g:netrw-b|)
-			   * changed B, NB to simply gb  (see |g:netrw-gb|)
+			   * changed b, Nb to simply mb  (see |netrw-mb|)
+			   * changed B, NB to simply gb  (see |netrw-gb|)
 			   * tree listing style (see |g:netrw_liststyle|)
 			   * attempts to retain the alternate file
 	v103: Jul 26, 2006 * used Yakov Lerner's tip#1289 to improve netrw

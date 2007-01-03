@@ -38,6 +38,9 @@ set cpo&vim
 augroup FileExplorer
  au!
  au BufEnter * silent! call s:LocalBrowse(expand("<amatch>"))
+ if has("win32") || has("win95") || has("win64") || has("win16")
+  au BufEnter .* silent! call s:LocalBrowse(expand("<amatch>"))
+ endif
 augroup END
 
 " Network Browsing Reading Writing: {{{2
@@ -87,7 +90,16 @@ fun! s:LocalBrowse(dirname)
   " unfortunate interaction -- debugging calls can't be used here;
   " the BufEnter event causes triggering when attempts to write to
   " the DBG buffer are made.
-  if isdirectory(a:dirname)
+  echomsg "dirname<".dirname.">"
+  if has("amiga")
+   " The check against '' is made for the Amiga, where the empty
+   " string is the current directory and not checking would break
+   " things such as the help command.
+   if a:dirname != '' && isdirectory(a:dirname)
+    silent! call netrw#LocalBrowseCheck(a:dirname)
+   endif
+  elseif isdirectory(a:dirname)
+   echomsg "dirname<".dirname."> isdir"
    silent! call netrw#LocalBrowseCheck(a:dirname)
   endif
   " not a directory, ignore it
