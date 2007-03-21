@@ -1,13 +1,13 @@
-*pi_netrw.txt*  For Vim version 7.0.  Last change: 2007 Jan 03
+*pi_netrw.txt*  For Vim version 7.0.  Last change: 2007 Mar 21
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
 	    -----------------------------------------------------
 
 
-*dav*           *http*          *network*       *rcp*           *scp*
-*fetch*         *netrw*         *Nread*         *rsync*         *sftp*
-*ftp*           *netrw.vim*     *Nwrite*        *netrw-file*
+*dav*           *http*          *network*       *Nwrite*   *netrw-file*
+*fetch*         *netrw*         *Nread*         *rcp*      *scp*
+*ftp*           *netrw.vim*     *Nsource*       *rsync*    *sftp*
 
 ==============================================================================
 1. Contents						*netrw-contents*
@@ -41,7 +41,7 @@
       Going Up...........................................|netrw--|
       Browsing...........................................|netrw-cr|
       Obtaining A File...................................|netrw-O|
-      Thin, Long, Wide, and Tree Listings................|netrw-i|
+      Change Listing Style...............................|netrw-i|
       Making A New Directory.............................|netrw-d|
       Deleting Files Or Directories......................|netrw-D|
       Renaming Files Or Directories......................|netrw-move|
@@ -179,6 +179,17 @@ WRITING						*netrw-write* *netrw-nwrite*
 	:Nwrite "sftp://[user@]machine/path"		uses sftp
 	http: not supported!
 
+SOURCING					*netrw-source*
+	:Nsource ?					give help
+	:Nsource "dav://machine[:port]/path"		uses cadaver
+	:Nsource "fetch://[user@]machine/path"		uses fetch
+	:Nsource "ftp://[user@]machine[[:#]port]/path"	uses ftp w/ <.netrc>
+	:Nsource "http://[user@]machine/path"		uses http  uses wget
+	:Nsource "rcp://[user@]machine/path"		uses rcp
+	:Nsource "rsync://[user@]machine[:port]/path"	uses rsync
+	:Nsource "scp://[user@]machine[[:#]port]/path"	uses scp
+	:Nsource "sftp://[user@]machine/path"		uses sftp
+
 DIRECTORY LISTING					*netrw-dirlist*
 	:Nread [protocol]://[user]@hostname/path/
 
@@ -200,11 +211,6 @@ VARIABLES						*netrw-variables*
 
  *b:netrw_lastfile*	last file Network-read/written retained on a per-buffer
 			basis		(supports plain :Nw )
-
- *s:netrw_line*		during :Nw/NetWrite, holds current line number
- *s:netrw_col*		during :Nw/NetWrite, holds current column number
-			s:netrw_line and s:netrw_col are used to
-			restore the cursor position on writes
 
  *g:netrw_ftp*		if it doesn't exist, use default ftp
 			=0 use default ftp		       (uid password)
@@ -304,6 +310,8 @@ variable (ex. scp uses the variable g:netrw_scp_cmd, which is defaulted to
 	let g:netrw_scp_cmd = '"c:\Program Files\PuTTY\pscp.exe" -q -batch'
 	let g:netrw_sftp_cmd= '"c:\Program Files\PuTTY\psftp.exe"'
 <
+See |netrw-p8| for more about putty, pscp, psftp, etc.
+
 Ftp, an old protocol, seems to be blessed by numerous implementations.
 Unfortunately, some implementations are noisy (ie., add junk to the end of the
 file).  Thus, concerned users may decide to write a NetReadFixup() function
@@ -458,8 +466,12 @@ such as netrw.
 
 The usual read/write commands are supported.  There are also a few
 additional commands available.  Often you won't need to use Nw or
-Nread as shown in |netrw-transparent| (ie. use :e url, :r url, :w url;
-see |netrw-urls|).
+Nread as shown in |netrw-transparent| (ie. simply use >
+  :e url
+  :r url
+  :w url
+instead, as appropriate) -- see |netrw-urls|.  In the explanations
+below, a {netfile} is an url to a remote file.
 
 :[range]Nw	Write the specified lines to the current
 		file as specified in b:netrw_lastfile.
@@ -474,7 +486,14 @@ see |netrw-urls|).
 :Nread {netfile} {netfile}...
 		Read the {netfile} after the current line.
 
-								*netrw-uidpass*
+:Nsource {netfile}
+		Source the {netfile}.
+		To start up vim using a remote .vimrc, one may use
+		the following (all on one line) (tnx to Antoine Mechelynck) >
+		vim -u NORC -N
+		 --cmd "runtime plugin/netrwPlugin.vim"
+		 --cmd "source scp://HOSTNAME/.vimrc"
+<								*netrw-uidpass*
 :call NetUserPass()
 		If b:netrw_uid and b:netrw_passwd don't exist,
 		this function query the user for them.
@@ -572,7 +591,7 @@ variables listed below, and may be modified by the user.
     g:netrw_ftp_cmd    variable   ="ftp"
     g:netrw_http_cmd   variable   ="fetch -o"     if      fetch is available
     g:netrw_http_cmd   variable   ="wget -O"      else if wget  is available
-    g:netrw_list_cmd   variable   ="ssh HOSTNAME ls -Fa"
+    g:netrw_list_cmd   variable   ="ssh USEPORT HOSTNAME ls -Fa"
     g:netrw_rcp_cmd    variable   ="rcp"
     g:netrw_rsync_cmd  variable   ="rsync -a"
     g:netrw_scp_cmd    variable   ="scp -q"
@@ -684,7 +703,7 @@ MAPS								*netrw-maps*
      d................Make A New Directory.......................|netrw-d|
      D................Deleting Files or Directories..............|netrw-D|
      <c-h>............Edit File/Directory Hiding List............|netrw-ctrl-h|
-     i................Long Listing...............................|netrw-i|
+     i................Change Listing Style.......................|netrw-i|
      <c-l>............Refreshing the Listing.....................|netrw-ctrl-l|
      o................Browsing with a Horizontal Split...........|netrw-o|
      p................Preview Window.............................|netrw-p|
@@ -812,7 +831,20 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				 unix or g:netrw_cygwin set: : "ls -lF"
 				 otherwise                     "dir"
 
-  *g:netrw_hide*			if true, the hiding list is used
+
+  *g:netrw_ftp_sizelist_cmd*	options for passing along to ftp for directory
+				listing, sorted by size of file.
+				Defaults:
+				 unix or g:netrw_cygwin set: : "ls -slF"
+				 otherwise                     "dir"
+
+  *g:netrw_ftp_timelist_cmd*	options for passing along to ftp for directory
+				listing, sorted by time of last modification.
+				Defaults:
+				 unix or g:netrw_cygwin set: : "ls -tlF"
+				 otherwise                     "dir"
+
+  *g:netrw_hide*		if true, the hiding list is used
 				 default: =0
 
   *g:netrw_keepdir*		=1 (default) keep current directory immune from
@@ -849,16 +881,16 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				columnar.
 
   *g:netrw_mkdir_cmd*		command for making a remote directory
-				 default: "ssh HOSTNAME mkdir"
+				 default: "ssh USEPORT HOSTNAME mkdir"
 
   *g:netrw_rm_cmd*		command for removing files
-				 default: "ssh HOSTNAME rm"
+				 default: "ssh USEPORT HOSTNAME rm"
 
   *g:netrw_rmdir_cmd*		command for removing directories
-				 default: "ssh HOSTNAME rmdir"
+				 default: "ssh USEPORT HOSTNAME rmdir"
 
   *g:netrw_rmf_cmd*		 command for removing softlinks
-				 default: "ssh HOSTNAME rm -f"
+				 default: "ssh USEPORT HOSTNAME rm -f"
 
   *g:netrw_sort_by*		sort by "name", "time", or "size"
 				 default: "name"
@@ -882,6 +914,14 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				Use this pattern to remove such embedded
 				messages.  By default its value is:
 					 '^total\s\+\d\+$'
+
+  *g:netrw_use_noswf*		netrw normally avoids writing swapfiles
+  				for browser buffers.  However, under some
+				systems this apparently is causing nasty
+				ml_get errors to appear; if you're getting
+				ml_get errors, try putting
+				  let g:netrw_use_noswf= 0
+				in your .vimrc.
 
   *g:netrw_timefmt*		specify format string to strftime() (%c)
 				 default: "%c"
@@ -1087,7 +1127,7 @@ Related topics:
    directory, see |g:netrw_keepdir|.
 
 
-THIN, LONG, WIDE, AND TREE LISTINGS				*netrw-i*
+CHANGE LISTING STYLE						*netrw-i*
 
 The "i" map cycles between the thin, long, wide, and tree listing formats.
 
@@ -1103,9 +1143,13 @@ The wide listing format uses two or more contiguous spaces to delineate
 filenames; when using that format, netrw won't be able to recognize or use
 filenames which have two or more contiguous spaces embedded in the name or any
 trailing spaces.  The thin listing format will, however, work with such files.
+This listing format is the most compact.
 
 The tree listing format has a top directory followed by files and directories
-preceded by a "|".  One may open and close directories as usual.
+preceded by a "|".  One may open and close directories by pressing the <cr>
+key while atop the directory name.  There is only one tree listing buffer;
+hence, using "v" or "o" on a subdirectory will only show the same buffer,
+twice.
 
 
 MAKING A NEW DIRECTORY						*netrw-d*
@@ -1208,6 +1252,9 @@ new window and cursor at the bottom, have
 
 in your <.vimrc>.  (also see |netrw-t| |netrw-v| |g:netrw_alto|)
 
+There is only one tree listing buffer; using "o" on a displayed subdirectory 
+will split the screen, but the same buffer will be shown twice.
+
 
 BROWSING WITH A VERTICALLY SPLIT WINDOW				*netrw-v*
 
@@ -1223,6 +1270,9 @@ window and cursor at the right, have
 
 in your <.vimrc>.  (also see: |netrw-o| |netrw-t| |g:netrw_altv|)
 
+There is only one tree listing buffer; using "v" on a displayed subdirectory 
+will split the screen, but the same buffer will be shown twice.
+
 
 BROWSING WITH A NEW TAB					*netrw-t*
 
@@ -1233,8 +1283,8 @@ new tab. (also see: |netrw-o| |netrw-v|)
 
 PREVIEW WINDOW					*netrw-p* *netrw-preview*
 
-One may use a preview window (currently only for local browsing) by using the
-"p" key when the cursor is atop the desired filename to be previewed.
+One may use a preview window by using the "p" key when the cursor is atop the
+desired filename to be previewed.
 
 
 PREVIOUS WINDOW					*netrw-P* *netrw-prvwin*
@@ -1295,7 +1345,7 @@ This map is the opposite of the "u" map. (see |netrw-u|)  Use the
 q map to list both the bookmarks and history. (see |netrw-q|)
 
 						*netrw-gx*
-CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler* *gx*
+CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler*
 						(also see |netrw_filehandler|)
 
 Certain files, such as html, gif, jpeg, (word/office) doc, etc, files, are
@@ -1368,14 +1418,15 @@ with a request.
 MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY	*netrw-c* *netrw-curdir*
 
 By default, |g:netrw_keepdir| is 1.  This setting means that the current
-directory will not track the browsing directory.  However, setting
-g:netrw_keepdir to 0 (say, in your <.vimrc>) will tell netrw to make the
-currently browsed directory also be the current directory.
+directory will not track the browsing directory.
 
-However, with the default setting for g:netrw_keepdir of 1 where netrw
+Setting g:netrw_keepdir to 0 tells netrw to make vim's current directory to
+track netrw's browsing directory.
+
+However, given the default setting for g:netrw_keepdir of 1 where netrw
 maintains its own separate notion of the current directory, in order to make
 the two directories the same, use the "c" map (just type c).  That map will
-set Vim's notion of the current directory to the netrw's current browsing
+set Vim's notion of the current directory to netrw's current browsing
 directory.
 
 
@@ -1410,15 +1461,29 @@ IMPROVING DIRECTORY BROWSING				*netrw-listhack*
 Especially with the remote directory browser, constantly entering the password
 is tedious.
 
-For Linux/Unix systems, I suggest looking into
+For Linux/Unix systems, the book "Linux Server Hacks - 100 industrial strength
+tips & tools" by Rob Flickenger (O'Reilly, ISBN 0-596-00461-3), gives a tip
+for setting up no-password ssh and scp, plus discusses associated security
+issues.  It used to be available at http://hacks.oreilly.com/pub/h/66 ,
+but apparently that address is now being redirected to some "hackzine".
+I'll attempt a summary:
 
-	http://hacks.oreilly.com/pub/h/66
+	1. Generate a public/private key pair on the ssh server:
+	   ssh-keygen -t rsa
+	   (saving the file in ~/.ssh/id_rsa is ok)
+	2. Just hit the <CR> when asked for passphrase (twice).
+	3. This creates two files:
+	     ~/.ssh/id_rsa
+	     ~/.ssh/id_rsa.pub
+	4. On the client:
+	    cd
+	    mkdir .ssh
+	    chmod 0700 .ssh
+	    scp {serverhostname}:.ssh/id_rsa.pub .
+	    cat id_rsa.pub >> .ssh/authorized_keys2
 
-It gives a tip for setting up password-less use of ssh and scp, and discusses
-the associated security issues.
-
-For Windows, the vim mailing list has mentioned that Pageant helps with
-avoiding the constant need to enter the password.
+For Windows, folks on the vim mailing list have mentioned that Pageant helps
+with avoiding the constant need to enter the password.
 
 
 NETRW SETTINGS						*netrw-settings*
@@ -1448,22 +1513,31 @@ help on what each of the variables do.
 			let g:netrw_win95ftp= 1
 
 								*netrw-p2*
-	P2. I use windows, and my network browsing with ftp doesn't sort by
-	    time or size
+	P2. I use Windows, and my network browsing with ftp doesn't sort by
+	    time or size!  -or-  The remote system is a Windows server; why
+	    don't I get sorts by time or size?
 
 		Windows' ftp has a minimal support for ls (ie. it doesn't
 		accept sorting options).  It doesn't support the -F which
 		gives an explanatory character (ABC/ for "ABC is a directory").
-		Netrw uses dir to get its short and long listings.  If you
-		think your ftp does support a full-up ls, put the following
-		into your <.vimrc>:
+		Netrw then uses "dir" to get both its short and long listings.
+		If you think your ftp does support a full-up ls, put the
+		following into your <.vimrc>: >
 
-			let g:netrw_ftp_list_cmd= "ls -lF"
-
+			let g:netrw_ftp_list_cmd    = "ls -lF"
+			let g:netrw_ftp_timelist_cmd= "ls -tlF"
+			let g:netrw_ftp_sizelist_cmd= "ls -slF"
+<
 		Alternatively, if you have cygwin on your Windows box, put
-		into your <.vimrc>:
+		into your <.vimrc>: >
 
 			let g:netrw_cygwin= 1
+<
+		This problem also occurs when the remote system is Windows.
+		In this situation, the various g:netrw_ftp_[time|size]list_cmds
+		are as shown above, but the remote system will not correctly
+		modify its listing behavior.
+
 
 								*netrw-p3*
 	P3. I tried rcp://user@host/ (or protocol other than ftp) and netrw
@@ -1539,28 +1613,64 @@ help on what each of the variables do.
 
 		It doesn't need the full Cygwin package. 
 
-	    	(Antoine Mechelynck) For individual Unix-like programs needed
+		(Antoine Mechelynck) For individual Unix-like programs needed
 		for work in a native-Windows environment, I recommend getting
 		them from the GnuWin32 project on sourceforge if it has them:
 
-	    	    http://gnuwin32.sourceforge.net/
+		    http://gnuwin32.sourceforge.net/
 
-	    	Unlike Cygwin, which sets up a Unix-like virtual machine on
+		Unlike Cygwin, which sets up a Unix-like virtual machine on
 		top of Windows, GnuWin32 is a rewrite of Unix utilities with
 		Windows system calls, and its programs works quite well in the
 		cmd.exe "Dos box". 
 
-	    	(cec) To make proper use of these suggestions above, you will
+		(dave) Download WinSCP and use that to connect to the server.
+		In Preferences > Editors, set gvim as your editor:
+
+			- Click "Add..."
+			- Set External Editor (adjust path as needed, include
+			  the quotes and !.! at the end):
+			    "c:\Program Files\Vim\vim70\gvim.exe" !.!
+			- Check that the filetype in the box below is
+			  {asterisk}.{asterisk} (all files), or whatever types
+			  you want (cec: change {asterisk} to * ; I had to
+			  write it that way because otherwise the helptags
+			  system thinks its a tag)
+			- Make sure its at the top of the listbox (click it,
+			  then click "Up" if its not)
+		If using the Norton Commander style, you just have to hit <F4>
+		to edit a file in a local copy of gvim.
+
+		(Vit Gottwald) How to generate public/private key and save
+		public key it on server: >
+  http://www.tartarus.org/~simon/puttydoc/Chapter8.html#pubkey-gettingready
+			8.3 Getting ready for public key authentication
+<
+		How to use private key with 'pscp': >
+			http://www.tartarus.org/~simon/puttydoc/Chapter5.html
+			5.2.4 Using public key authentication with PSCP 
+<
+		(cec) To make proper use of these suggestions above, you will
 		need to modify the following user-settable variables in your
 		.vimrc:
 
-    	       	   |g:netrw_ssh_cmd| |g:netrw_list_cmd|  |g:netrw_mkdir_cmd|
-    	       	   |g:netrw_rm_cmd|  |g:netrw_rmdir_cmd| |g:netrw_rmf_cmd|
+			|g:netrw_ssh_cmd| |g:netrw_list_cmd|  |g:netrw_mkdir_cmd|
+			|g:netrw_rm_cmd|  |g:netrw_rmdir_cmd| |g:netrw_rmf_cmd|
 
 		The first one (|g:netrw_ssh_cmd|) is the most important; most
 		of the others will use the string in g:netrw_ssh_cmd by
 		default.
+						*netrw-p9* *netrw-ml_get*
+	P9. I'm browsing, changing directory, and bang!  ml_get errors
+	    appear and I have to kill vim.  Any way around this?
 
+		Normally netrw attempts to avoid writing swapfiles for
+		its temporary directory buffers.  However, on some systems
+		this attempt appears to be causing ml_get errors to
+		appear.  Please try setting |g:netrw_use_noswf| to 0
+		in your <.vimrc>: >
+			let g:netrw_use_noswf= 0
+<
 
 ==============================================================================
 11. Debugging						*netrw-debug*
@@ -1618,6 +1728,25 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v108: Jan 03, 2007 * included preview map (|netrw-p|), supporting
+	                     remote browsing
+			   * netrw can now source remote files
+	      Jan 26, 2007 * Colton Jamieson noted that remote directory
+	                     browsing did not support alternate port
+			     selection.  This feature has now been extended
+			     to apply to all remote browsing commands via ssh.
+			     (list, remove/delete, rename)
+	      Jan 31, 2007 * Luis Florit reported that @* was an invalid
+	                     register.  The @* register is now only saved and
+			     restored if |guioptions| contains "a".
+	      Feb 02, 2007 * Fixed a bug that cropped up when writing files
+	                     via scp using cygwin
+	      Feb 08, 2007 * tree listing mode managed to stop working again;
+	                     fixed again!
+	      Feb 15, 2007 * Guido Van Hoecke reported that netrw didn't
+	                     handle browsing well with M$ ftp servers.  He even
+			     set up a temporary account for me to test with
+			     (thanks!).  Netrw now can browse M$ ftp servers.
 	v107: Oct 12, 2006 * bypassed the autowrite option
 	      Oct 24, 2006 * handles automatic decompression of *.gz and *.bz2
 	                     files

@@ -1,6 +1,6 @@
 " netrwPlugin.vim: Handles file transfer and remote directory listing across a network
 "            PLUGIN SECTION
-" Date:		Jul 18, 2006
+" Date:		Jan 05, 2007
 " Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
@@ -56,6 +56,11 @@ augroup Network
  au FileReadCmd  ftp://*,rcp://*,scp://*,http://*,dav://*,rsync://*,sftp://*	exe "silent doau FileReadPre ".expand("<amatch>")|exe 'Nread "'   .expand("<amatch>").'"'|exe "silent doau FileReadPost ".expand("<amatch>")
  au BufWriteCmd  ftp://*,rcp://*,scp://*,dav://*,rsync://*,sftp://*		exe "silent doau BufWritePre ".expand("<amatch>")|exe 'Nwrite "' .expand("<amatch>").'"'|exe "silent doau BufWritePost ".expand("<amatch>")
  au FileWriteCmd ftp://*,rcp://*,scp://*,dav://*,rsync://*,sftp://*		exe "silent doau FileWritePre ".expand("<amatch>")|exe "'[,']".'Nwrite "' .expand("<amatch>").'"'|exe "silent doau FileWritePost ".expand("<amatch>")
+ try
+  au SourceCmd    ftp://*,rcp://*,scp://*,http://*,dav://*,rsync://*,sftp://*	exe 'Nsource "'.expand("<amatch>").'"'
+ catch /^Vim\%((\a\+)\)\=:E216/
+  au SourcePre    ftp://*,rcp://*,scp://*,http://*,dav://*,rsync://*,sftp://*	exe 'Nsource "'.expand("<amatch>").'"'
+ endtry
 augroup END
 
 " Commands: :Nread, :Nwrite, :NetUserPass {{{2
@@ -63,6 +68,7 @@ com! -count=1 -nargs=*	Nread		call netrw#NetSavePosn()<bar>call netrw#NetRead(<c
 com! -range=% -nargs=*	Nwrite		call netrw#NetSavePosn()<bar><line1>,<line2>call netrw#NetWrite(<f-args>)<bar>call netrw#NetRestorePosn()
 com! -nargs=*		NetUserPass	call NetUserPass(<f-args>)
 com! -nargs=+           Ncopy           call netrw#NetObtain(<f-args>)
+com! -nargs=*	        Nsource		call netrw#NetSavePosn()<bar>call netrw#NetSource(<f-args>)<bar>call netrw#NetRestorePosn()
 
 " Commands: :Explore, :Sexplore, Hexplore, Vexplore {{{2
 com! -nargs=* -bar -bang -count=0 -complete=dir	Explore		call netrw#Explore(<count>,0,0+<bang>0,<q-args>)
@@ -90,7 +96,7 @@ fun! s:LocalBrowse(dirname)
   " unfortunate interaction -- debugging calls can't be used here;
   " the BufEnter event causes triggering when attempts to write to
   " the DBG buffer are made.
-  echomsg "dirname<".dirname.">"
+"  echomsg "dirname<".a:dirname.">"
   if has("amiga")
    " The check against '' is made for the Amiga, where the empty
    " string is the current directory and not checking would break
@@ -99,7 +105,7 @@ fun! s:LocalBrowse(dirname)
     silent! call netrw#LocalBrowseCheck(a:dirname)
    endif
   elseif isdirectory(a:dirname)
-   echomsg "dirname<".dirname."> isdir"
+"   echomsg "dirname<".dirname."> isdir"
    silent! call netrw#LocalBrowseCheck(a:dirname)
   endif
   " not a directory, ignore it

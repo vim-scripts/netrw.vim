@@ -1,8 +1,8 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Jul 28, 2006
+" Date:		Jan 05, 2007
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	9a	ASTRO-ONLY
-" Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
+" Version:	9b	ASTRO-ONLY
+" Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
@@ -19,7 +19,7 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v9a"
+let g:loaded_netrwSettings  = "v9b"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
@@ -101,6 +101,8 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_fastbrowse        = '.g:netrw_fastbrowse
   put = 'let g:netrw_ftp_browse_reject = '.g:netrw_ftp_browse_reject
   put = 'let g:netrw_ftp_list_cmd      = '.g:netrw_ftp_list_cmd
+  put = 'let g:netrw_ftp_sizelist_cmd  = '.g:netrw_ftp_sizelist_cmd
+  put = 'let g:netrw_ftp_timelist_cmd  = '.g:netrw_ftp_timelist_cmd
   put = 'let g:netrw_hide              = '.g:netrw_hide
   put = 'let g:netrw_keepdir           = '.g:netrw_keepdir
   put = 'let g:netrw_list_cmd          = '.g:netrw_list_cmd
@@ -121,6 +123,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_sort_sequence     = '.g:netrw_sort_sequence
   put = 'let g:netrw_ssh_browse_reject = '.g:netrw_ssh_browse_reject
   put = 'let g:netrw_timefmt           = '.g:netrw_timefmt
+  put = 'let g:netrw_use_noswf         = '.g:netrw_use_noswf
   put = 'let g:netrw_winsize           = '.g:netrw_winsize
 
   put =''
