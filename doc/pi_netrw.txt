@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1a.  Last change: 2007 May 05
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Jun 20
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -67,19 +67,6 @@
 12. History..............................................|netrw-history|
 13. Credits..............................................|netrw-credits|
 
-The Netrw plugin is generally sourced automatically as it is a
-|standard-plugin|.  That said, to make use of netrw, one must
-have plugins available which can be done with the following
-two lines in your <.vimrc>: >
-
-	set nocp                    " 'compatible' is not set
-	filetype plugin on          " plugins are enabled
-<
-You can avoid loading this plugin by setting the "loaded_netrw" variable
-in your <.vimrc> file: >
-
-	:let loaded_netrw = 1
-
 {Vi does not have any of this}
 
 ==============================================================================
@@ -133,6 +120,14 @@ See |netrw-browse| for more!
 
 There's more protocols supported than scp and ftp, too: see the next
 section, |netrw-externapp|.
+
+If you want to use plugins, but for some reason don't wish to use netrw, then
+you need to avoid loading both the plugin and the autoload portions of netrw.
+You may do so by placing the following two lines in your <.vimrc>: >
+
+	:let g:loaded_netrw       = 1
+	:let g:loaded_netrwPlugin = 1
+<
 
 ==============================================================================
 3. Netrw Reference						*netrw-ref*
@@ -248,6 +243,12 @@ VARIABLES						*netrw-variables*
  *g:netrw_uid*		(ftp) user-id,      retained on a per-session basis
  *g:netrw_passwd*	(ftp) password,     retained on a per-session basis
 
+ *g:netrw_preview*	=0 (default) preview window shown in a horizontally
+                           split window
+			=1 preview window shown in a vertically split window.
+			Affects the "previous window" (see |netrw-P|) the same
+			way.
+
  *g:netrw_shq*		= "'" for Unix/Linux systems (ie. a single quote)
 			= "'" for Windows + cygwin systems (ie. a single quote)
 			= '"' for Windows systems, not using cygwin
@@ -257,6 +258,9 @@ VARIABLES						*netrw-variables*
 
  *g:netrw_scpport*      = "-P" : option to use to set port for scp
  *g:netrw_sshport*      = "-p" : option to use to set port for ssh
+
+  *g:netrw_silent*	=0 : transfers done normally
+			=1 : transfers done silently
 
  *g:netrw_use_errorwindow* =1 : messages from netrw will use a separate one
                                 line window.  This window provides reliable
@@ -312,7 +316,7 @@ FileReadCmd, BufWriteCmd) to intercept reads/writes with url-like filenames. >
 	ex. vim ftp://hostname/path/to/file
 <
 The characters preceding the colon specify the protocol to use; in the
-example, its ftp.  The <netrw.vim> script then formulates a command or a
+example, it's ftp.  The <netrw.vim> script then formulates a command or a
 series of commands (typically ftp) which it issues to an external program
 (ftp, scp, etc) which does the actual file transfer/protocol.  Files are read
 from/written to a temporary file (under Unix/Linux, /tmp/...) which the
@@ -723,7 +727,8 @@ MAPS								*netrw-maps*
      i................Change Listing Style.......................|netrw-i|
      <c-l>............Refreshing the Listing.....................|netrw-ctrl-l|
      o................Browsing with a Horizontal Split...........|netrw-o|
-     p................Preview Window.............................|netrw-p|
+     p................Use Preview Window.........................|netrw-p|
+     P................Edit in Previous Window....................|netrw-P|
      q................Listing Bookmarks and History..............|netrw-q|
      r................Reversing Sorting Order....................|netrw-r|
      R................Renaming Files or Directories..............|netrw-R|
@@ -900,6 +905,9 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
   *g:netrw_mkdir_cmd*		command for making a remote directory
 				 default: "ssh USEPORT HOSTNAME mkdir"
 
+  *g:netrw_mousemaps*		=1 by default; enables the use of left and
+  				right mouse buttons for selection/deletion
+				of files and directories.
   *g:netrw_rm_cmd*		command for removing files
 				 default: "ssh USEPORT HOSTNAME rm"
 
@@ -947,7 +955,7 @@ NETRW BROWSER VARIABLES					*netrw-browse-var*
 				 default: ""
 
   *g:NetrwTopLvlMenu*		This variable specifies the top level
-				menu name; by default, its "Netrw.".  If
+				menu name; by default, it's "Netrw.".  If
 				you wish to change this, do so in your
 				.vimrc.
 
@@ -1301,7 +1309,10 @@ new tab. (also see: |netrw-o| |netrw-v|)
 PREVIEW WINDOW					*netrw-p* *netrw-preview*
 
 One may use a preview window by using the "p" key when the cursor is atop the
-desired filename to be previewed.
+desired filename to be previewed.  The display will then split to show both
+the browser (where the cursor will remain) and the file (see |pedit|).
+By default, the split will be taken horizontally; one may use vertical
+splitting if one has set |g:netrw_preview| first.
 
 
 PREVIOUS WINDOW					*netrw-P* *netrw-prvwin*
@@ -1350,7 +1361,7 @@ CHANGING TO A PREDECESSOR DIRECTORY		*netrw-u* *netrw-updir*
 
 Every time you change to a new directory (new for the current session),
 netrw will save the directory in a recently-visited directory history
-list (unless g:netrw_dirhistmax is zero; by default, its ten).  With the
+list (unless g:netrw_dirhistmax is zero; by default, it's ten).  With the
 "u" map, one can change to an earlier directory (predecessor).  To do
 the opposite, see |netrw-U|.
 
@@ -1652,9 +1663,9 @@ help on what each of the variables do.
 			  {asterisk}.{asterisk} (all files), or whatever types
 			  you want (cec: change {asterisk} to * ; I had to
 			  write it that way because otherwise the helptags
-			  system thinks its a tag)
-			- Make sure its at the top of the listbox (click it,
-			  then click "Up" if its not)
+			  system thinks it's a tag)
+			- Make sure it's at the top of the listbox (click it,
+			  then click "Up" if it's not)
 		If using the Norton Commander style, you just have to hit <F4>
 		to edit a file in a local copy of gvim.
 
@@ -1694,46 +1705,44 @@ help on what each of the variables do.
 
 The <netrw.vim> script is typically available as:
 >
-	/usr/local/share/vim/vim6x/plugin/netrw.vim
+	/usr/local/share/vim/vim6x/plugin/netrwPlugin.vim
+	/usr/local/share/vim/vim6x/autoload/netrw.vim
 < -or- >
-	/usr/local/share/vim/vim7x/plugin/netrw.vim
+	/usr/local/share/vim/vim7x/plugin/netrwPlugin.vim
+	/usr/local/share/vim/vim7x/autoload/netrw.vim
 <
 which is loaded automatically at startup (assuming :set nocp).
 
 	1. Get the <Decho.vim> script, available as:
 
-	     http://mysite.verizon.net/astronaut/vim/index.html#vimlinks_scripts
-	     as "Decho, a vimL debugging aid"
+	     http://mysite.verizon.net/astronaut/vim/index.html#DECHO
 	   or
 	     http://vim.sourceforge.net/scripts/script.php?script_id=120
 
-	   and put it into your local plugin directory.
+	  It now comes as a "vimball"; if you're using vim 7.0 or earlier,
+	  you'll need to update vimball, too.  See
+	     http://mysite.verizon.net/astronaut/vim/index.html#VIMBALL
 
-	2. <Decho.vim> itself needs the <cecutil.vim> script, so you'll need
-	   to put it into your .vim/plugin, too.  You may obtain it from:
-
-		http://mysite.verizon.net/astronaut/vim/index.html#VimFuncs
-		as "DrC's Utilities"
-
-	3. Edit the <netrw.vim> file by typing:
+	2. Edit the <netrw.vim> file by typing: >
 
 		vim netrw.vim
 		:DechoOn
 		:wq
-
-	   To restore to normal non-debugging behavior, edit <netrw.vim>
-	   by typing
+<
+	   To restore to normal non-debugging behavior, re-edit <netrw.vim>
+	   and type >
 
 		vim netrw.vim
 		:DechoOff
 		:wq
-
+<
 	   This command, provided by <Decho.vim>, will comment out all
 	   Decho-debugging statements (Dfunc(), Dret(), Decho(), Dredir()).
 
-	4. Then bring up vim and attempt a transfer or do browsing.  A set of
-	   messages should appear concerning the steps that <netrw.vim> took
-	   in attempting to read/write your file over the network.
+	3. Then bring up vim and attempt to evoke the problem by doing a
+	   transfer or doing some browsing.  A set of messages should appear
+	   concerning the steps that <netrw.vim> took in attempting to
+	   read/write your file over the network in a separate tab.
 
 	   To save the file, use >
 		:wincmd j
@@ -1745,6 +1754,29 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v110: May 10, 2007 * added [ and ] maps to NetrwTreeListing
+	      May 25, 2007 * |g:netrw_preview| included
+	      May 29, 2007 * modifed netrw#NetBrowseX to consistently use
+	                     |g:netrw_shq| instead of hardcoded quotes,
+			     and modified the snippet that sets up redir
+			     so Windows machines use "nul" instead of
+			     "/dev/null".
+	      Jun 01, 2007 * fixed bug -- NetGetBuffer() wasn't always
+	                     recognizing a buffer name match when it should,
+			     thus resulting in [Scratch] buffers.
+	      Jun 04, 2007 * Gary Johnson found a bugfix for the "c" mapping
+	                     when the directory is to be made current but
+			     the name contains spaces.
+	      Jun 08, 2007 * Moved call to NetrwSafeOptions() out of
+	                     NetrwOptionSave().  Caused problem with options
+			     when people split a window containing a file,
+			     then ran :Explore.  Former behavior: "safe options"
+			     got set for all windows containing the file that
+			     :Explore was launched from.
+	      Jun 15, 2007 * Got remote file deletion working again
+	                   * Got remote file renaming working again
+	      Jun 20, 2007 * using leftmouse to a non-netrw window no longer
+	                     gives a "b:netrw_curdir doesn't exist" error
 	v109: Mar 26, 2007 * if a directory name includes a "$" character,
 			     Explore() will use expand() in an attempt to
 			     decipher the name.
@@ -2065,7 +2097,7 @@ which is loaded automatically at startup (assuming :set nocp).
 	       to be seen
 	     * directory browser displays no longer bother the swapfile
 	     * u/U commands to go up and down the history stack
-	     * history stack may be saved with viminfo with its "!" option
+	     * history stack may be saved with viminfo with it's "!" option
 	     * bugfixes associated with unwanted [No Files] entries
 	v50: * directories now displayed using buftype=nofile; should keep the
 	       directory names as-is

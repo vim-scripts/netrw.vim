@@ -64,11 +64,11 @@ augroup Network
 augroup END
 
 " Commands: :Nread, :Nwrite, :NetUserPass {{{2
-com! -count=1 -nargs=*	Nread		call netrw#NetSavePosn()<bar>call netrw#NetRead(<count>,<f-args>)<bar>call netrw#NetRestorePosn()
-com! -range=% -nargs=*	Nwrite		call netrw#NetSavePosn()<bar><line1>,<line2>call netrw#NetWrite(<f-args>)<bar>call netrw#NetRestorePosn()
+com! -count=1 -nargs=*	Nread		call netrw#NetrwSavePosn()<bar>call netrw#NetRead(<count>,<f-args>)<bar>call netrw#NetrwRestorePosn()
+com! -range=% -nargs=*	Nwrite		call netrw#NetrwSavePosn()<bar><line1>,<line2>call netrw#NetWrite(<f-args>)<bar>call netrw#NetrwRestorePosn()
 com! -nargs=*		NetUserPass	call NetUserPass(<f-args>)
-com! -nargs=+           Ncopy           call netrw#NetObtain(<f-args>)
-com! -nargs=*	        Nsource		call netrw#NetSavePosn()<bar>call netrw#NetSource(<f-args>)<bar>call netrw#NetRestorePosn()
+com! -nargs=+           Ncopy           call netrw#NetrwObtain(<f-args>)
+com! -nargs=*	        Nsource		call netrw#NetrwSavePosn()<bar>call netrw#NetSource(<f-args>)<bar>call netrw#NetrwRestorePosn()
 
 " Commands: :Explore, :Sexplore, Hexplore, Vexplore {{{2
 com! -nargs=* -bar -bang -count=0 -complete=dir	Explore		call netrw#Explore(<count>,0,0+<bang>0,<q-args>)

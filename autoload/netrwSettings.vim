@@ -1,7 +1,7 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Mar 26, 2007
+" Date:		Jun 04, 2007
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	9
+" Version:	11
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -19,13 +19,13 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v9"
+let g:loaded_netrwSettings  = "v11"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
 fun! netrwSettings#NetrwSettings()
   " this call is here largely just to insure that netrw has been loaded
-  call netrw#NetSavePosn()
+  call netrw#NetrwSavePosn()
   if !exists("g:loaded_netrw")
    echohl WarningMsg | echomsg "***sorry*** netrw needs to be loaded prior to using NetrwSettings" | echohl None
    return
@@ -101,6 +101,8 @@ fun! netrwSettings#NetrwSettings()
   else
    put = 'let g:netrw_browsex_viewer    = (not defined)'
   endif
+  let cdescline= line("$")
+  put ='let g:netrw_cd_escape...'
   put = 'let g:netrw_dirhistmax        = '.g:netrw_dirhistmax
   put = 'let g:netrw_fastbrowse        = '.g:netrw_fastbrowse
   put = 'let g:netrw_ftp_browse_reject = '.g:netrw_ftp_browse_reject
@@ -117,6 +119,8 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_maxfilenamelen    = '.g:netrw_maxfilenamelen
   put = 'let g:netrw_menu              = '.g:netrw_menu
   put = 'let g:netrw_mkdir_cmd         = '.g:netrw_mkdir_cmd
+  put = 'let g:netrw_mousemaps         = '.g:netrw_mousemaps
+  put = 'let g:netrw_preview           = '.g:netrw_preview
   put = 'let g:netrw_rename_cmd        = '.g:netrw_rename_cmd
   put = 'let g:netrw_rm_cmd            = '.g:netrw_rm_cmd
   put = 'let g:netrw_rmdir_cmd         = '.g:netrw_rmdir_cmd
@@ -142,13 +146,14 @@ fun! netrwSettings#NetrwSettings()
   silent %s/= $/= ''/e
   1
 
-  " Put in shq setting.
+  " Put in g:netrw_shq setting and g:netrw_cd_escape
   " (deferred so as to avoid the quote manipulation just preceding)
   if g:netrw_shq == "'"
    call setline(shqline,'let g:netrw_shq               = "'.g:netrw_shq.'"')
   else
    call setline(shqline,"let g:netrw_shq               = '".g:netrw_shq."'")
   endif
+  call setline(cdescline,"let g:netrw_cd_escape         = ".'"'.escape(g:netrw_cd_escape,'\"').'"')
 
   set nomod
 
