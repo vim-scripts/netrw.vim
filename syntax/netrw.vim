@@ -1,7 +1,7 @@
 " Language   : Netrw Remote-Directory Listing Syntax
 " Maintainer : Charles E. Campbell, Jr.
-" Last change: Nov 27, 2006
-" Version    : 9
+" Last change: Aug 08, 2007
+" Version    : 10
 " ---------------------------------------------------------------------
 
 " Syntax Clearing: {{{1
@@ -63,6 +63,7 @@ if !exists("did_drchip_dbg_syntax")
  hi link netrwTimeSep	netrwDateSep
  hi link netrwComma	netrwComment
  hi link netrwHide	netrwComment
+ hi link netrwMarkFile	Identifier
 endif
 
 " Current Syntax: {{{1
