@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Aug 15
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Sep 04
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -26,7 +26,7 @@
       NETRC..............................................|netrw-netrc|
       PASSWORD...........................................|netrw-passwd|
 5.  Activation...........................................|netrw-activate|
-6.  Transparent File Transfer............................|netrw-transparent|
+6.  Transparent File Editing.............................|netrw-transparent|
 7.  Ex Commands..........................................|netrw-ex|
 8.  Variables and Options................................|netrw-var|
 9.  Browsing.............................................|netrw-browse|
@@ -79,9 +79,9 @@
 ==============================================================================
 2. Starting With Netrw					*netrw-start* {{{1
 
-Netrw makes reading, writing, and browsing over a network connection easy!
-First, make sure that you have plugins enabled, so you'll need to have at
-least the following in your <.vimrc>: (or see |netrw-activate|) >
+Netrw makes reading files, writing files, and browsing over a network and
+locally easy!  First, make sure that you have plugins enabled, so you'll need
+to have at least the following in your <.vimrc>: (or see |netrw-activate|) >
 
 	set nocp                    " 'compatible' is not set
 	filetype plugin on          " plugins are enabled
@@ -125,8 +125,8 @@ the directory name is followed by a "/"): >
 <
 See |netrw-browse| for more!
 
-There's more protocols supported than scp and ftp, too: see the next
-section, |netrw-externapp|.
+There are more protocols supported by netrw just than scp and ftp, too: see
+the next section, |netrw-externapp|.
 
 If you want to use plugins, but for some reason don't wish to use netrw, then
 you need to avoid loading both the plugin and the autoload portions of netrw.
@@ -474,7 +474,7 @@ up vim.  I suggest that, at a minimum, you have at least the following in your
 <
 
 ==============================================================================
-6. Transparent File Transfer			*netrw-transparent* {{{1
+6. Transparent File Editing			*netrw-transparent* {{{1
 
 Transparent file transfers occur whenever a regular file read or write
 (invoked via an |:autocmd| for |BufReadCmd| or |BufWriteCmd| events) is made.
@@ -492,7 +492,7 @@ such as netrw.
 7. Ex Commands						*netrw-ex* {{{1
 
 The usual read/write commands are supported.  There are also a few
-additional commands available.  Often you won't need to use Nw or
+additional commands available.  Often you won't need to use Nwrite or
 Nread as shown in |netrw-transparent| (ie. simply use >
   :e url
   :r url
@@ -500,20 +500,20 @@ Nread as shown in |netrw-transparent| (ie. simply use >
 instead, as appropriate) -- see |netrw-urls|.  In the explanations
 below, a {netfile} is an url to a remote file.
 
-:[range]Nw	Write the specified lines to the current
+:[range]Nw[rite]	Write the specified lines to the current
 		file as specified in b:netrw_lastfile.
 
-:[range]Nw {netfile} [{netfile}]...
+:[range]Nw[rite] {netfile} [{netfile}]...
 		Write the specified lines to the {netfile}.
 
-:Nread		Read the specified lines into the current
+:Nr[ead]		Read the specified lines into the current
 		buffer from the file specified in
 		b:netrw_lastfile.
 
-:Nread {netfile} {netfile}...
+:Nr[ead] {netfile} {netfile}...
 		Read the {netfile} after the current line.
 
-:Nsource {netfile}
+:Ns[ource] {netfile}
 		Source the {netfile}.
 		To start up vim using a remote .vimrc, one may use
 		the following (all on one line) (tnx to Antoine Mechelynck) >
@@ -717,34 +717,44 @@ itself:
 >
 
 ==============================================================================
-9. Browsing				*netrw-browse* *netrw-help* {{{1
-   					*netrw-dir*    *netrw-list*
+9. Browsing		*netrw-browsing* *netrw-browse* *netrw-help* {{{1
+   			*netrw-browser*  *netrw-dir*    *netrw-list*
 
 INTRODUCTION TO BROWSING			*netrw-browse-intro* {{{2
 
 Netrw supports the browsing of directories on your local system and on remote
-hosts, including listing files and directories, entering directories, editing
-files therein, deleting files/directories, making new directories, and moving
-(renaming) files and directories.  The Netrw browser generally implements the
-previous explorer's maps and commands for remote directories, although details
-(such as pertinent global variable names) necessarily differ.
+hosts; browsing including listing files and directories, entering directories,
+editing files therein, deleting files/directories, making new directories, and
+moving (renaming) files and directories.  In fact, one may mark files and
+execute any system command on them!  The Netrw browser generally implements
+the previous explorer's maps and commands for remote directories, although
+details (such as pertinent global variable names) necessarily differ.  To
+browse a directory, simply "edit" it! >
+
+	vim /your/directory/
+	vim .
+	vim c:\your\directory\
+<
+(Related topics: |netrw-cr|  |netrw-o|  |netrw-p| |netrw-P| |netrw-t| |netrw-v|
+                 |netrw-mf|  |netrw-mx| |netrw-D| |netrw-R| )
 
 The Netrw remote file and directory browser handles two protocols: ssh and
-ftp.  The protocol in the url, if it is ftp, will cause netrw to use ftp
-in its remote browsing.  Any other protocol will be used for file transfers;
-however, in those cases the ssh protocol will be used to do remote browsing.
+ftp.  The protocol in the url, if it is ftp, will cause netrw also to use ftp
+in its remote browsing.  Specifying any other protocol will cause it to be
+used for file transfers; but the ssh protocol will be used to do remote
+browsing.
 
-To use Netrw's remote directory browser, simply attempt to read a "file" with a
-trailing slash and it will be interpreted as a request to list a directory:
-
+To use Netrw's remote directory browser, simply attempt to read a "file" with
+a trailing slash and it will be interpreted as a request to list a directory:
+>
 	vim [protocol]://[user@]hostname/path/
-
+<
 For local directories, the trailing slash is not required.  Again, because its
 easy to miss: to browse remote directories, the url must terminate with a
 slash!
 
-If you'd like to avoid entering the password in for remote directory listings
-with ssh or scp, see |netrw-listhack|.
+If you'd like to avoid entering the password repeatedly for remote directory
+listings with ssh or scp, see |netrw-listhack|.
 
 
 QUICK REFERENCE COMMANDS TABLE			*netrw-browse-cmds* {{{2
@@ -793,6 +803,8 @@ QUICK REFERENCE COMMANDS TABLE			*netrw-browse-cmds* {{{2
 
 	<leftmouse>	(gvim only) selects word under mouse as if a <cr>
 			had been pressed (ie. edit file, change directory)
+	<middlemouse>	(gvim only) same as P selecting word under mouse;
+			see |netrw-P|
 	<rightmouse>	(gvim only) delete file/directory using word under
 			mouse
 	<2-leftmouse>	(gvim only) when in a netrw-selected file, a double
@@ -802,14 +814,16 @@ QUICK REFERENCE COMMANDS TABLE			*netrw-browse-cmds* {{{2
 	<s-leftmouse>	(gvim only) like mf, will mark files
 
 COMMANDS					*netrw-explore-cmds* {{{2
-     :Explore[!]  [dir] Explore directory of current file........|netrw-explore|
-     :Sexplore[!] [dir] Split & Explore directory ...............|netrw-explore|
-     :Hexplore[!] [dir] Horizontal Split & Explore...............|netrw-explore|
-     :Vexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
-     :Texplore[!] [dir] Tab & Explore............................|netrw-explore|
-     :Pexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
-     :Nexplore[!] [dir] Vertical Split & Explore.................|netrw-explore|
-     :NetrwSettings.............................................|netrw-settings|
+     :NetrwClean[!] ...........................................|netrw-clean|
+     :NetrwSettings ...........................................|netrw-settings|
+     :Explore[!]  [dir] Explore directory of current file......|netrw-explore|
+     :Hexplore[!] [dir] Horizontal Split & Explore.............|netrw-explore|
+     :Nexplore[!] [dir] Vertical Split & Explore...............|netrw-explore|
+     :Pexplore[!] [dir] Vertical Split & Explore...............|netrw-explore|
+     :Rexplore          Return to Explorer.....................|netrw-explore|
+     :Sexplore[!] [dir] Split & Explore directory .............|netrw-explore|
+     :Texplore[!] [dir] Tab & Explore..........................|netrw-explore|
+     :Vexplore[!] [dir] Vertical Split & Explore...............|netrw-explore|
 
 BOOKMARKING A DIRECTORY	*netrw-mb* *netrw-bookmark* *netrw-bookmarks* {{{2
 One may easily "bookmark" a directory by using >
@@ -828,17 +842,23 @@ Hitting the <cr> (the return key) will select the file or directory.
 Directories will themselves be listed, and files will be opened using the
 protocol given in the original read request.  
 
-  CAVEAT: There are four forms of listing (see |netrw-i|).  Netrw assumes
-  that two or more spaces delimit filenames and directory names for the long
-  and wide listing formats.  Thus, if your filename or directory name has two
-  or more spaces embedded in it, or any trailing spaces, then you'll need to
-  use the "thin" format to select it.
+  CAVEAT: There are four forms of listing (see |netrw-i|).  Netrw assumes that
+  two or more spaces delimit filenames and directory names for the long and
+  wide listing formats.  Thus, if your filename or directory name has two or
+  more sequential spaces embedded in it, or any trailing spaces, then you'll
+  need to use the "thin" format to select it.
 
 The |g:netrw_browse_split| option, which is zero by default, may be used to
-cause the opening of files to be done in a new window or tab.  When the option
-is one or two, the splitting will be taken horizontally or vertically,
-respectively.  When the option is set to three, a <cr> will cause the file
-to appear in a new tab.
+cause the opening of files to be done in a new window or tab instead of the
+default.  When the option is one or two, the splitting will be taken
+horizontally or vertically, respectively.  When the option is set to three, a
+<cr> will cause the file to appear in a new tab.
+
+When using the gui (gvim), one may also click on a file using the leftmouse
+button.  A doubly-clicked leftmouse button will return to the netrw browser
+window.
+
+Related topics: |netrw-o| |netrw-p| |netrw-P| |netrw-t| |netrw-v|
 
 
 BROWSING WITH A HORIZONTALLY SPLIT WINDOW	*netrw-o* *netrw-horiz* {{{2
@@ -933,6 +953,19 @@ CHANGING TO A SUCCESSOR DIRECTORY		*netrw-U* *netrw-downdir* {{{2
 With the "U" map, one can change to a later directory (successor).
 This map is the opposite of the "u" map. (see |netrw-u|)  Use the
 q map to list both the bookmarks and history. (see |netrw-q|)
+
+
+NETRW CLEAN					*netrw-clean*
+
+With :NetrwClean one may easily remove netrw from one's home directory;
+more precisely, from the first directory on your |'runtimepath'|.
+
+With :NetrwClean!, netrw will remove netrw from all directories on your
+|'runtimepath'|.
+
+With either form of the command, netrw will first ask for confirmation
+that the removal is in fact what you want to do.  If netrw doesn't have
+permission to remove a file, it will issue an error message.
 
 						*netrw-gx*
 CUSTOMIZING BROWSING WITH A USER FUNCTION	*netrw-x* *netrw-handler* {{{2
@@ -1038,14 +1071,16 @@ to remove it again using the g:netrw_rmf_cmd variable.  Its default value is:
 
 	g:netrw_rmf_cmd: ssh HOSTNAME rm -f
 
-
+*netrw-explore*  *netrw-hexplore* *netrw-nexplore* *netrw-pexplore*
+*netrw-rexplore* *netrw-sexplore* *netrw-texplore* *netrw-vexplore*
 DIRECTORY EXPLORATION COMMANDS  {{{2
 
      :Explore[!]   [dir]... Explore directory of current file       *:Explore*
-     :Sexplore[!]  [dir]... Split&Explore directory of current file *:Sexplore*
      :Hexplore[!]  [dir]... Horizontal Split & Explore              *:Hexplore*
-     :Vexplore[!]  [dir]... Vertical   Split & Explore              *:Vexplore*
+     :Rexplore          ... Return to Explorer                      *:Rexplore*
+     :Sexplore[!]  [dir]... Split&Explore directory of current file *:Sexplore*
      :Texplore     [dir]... Tab              & Explore              *:Texplore*
+     :Vexplore[!]  [dir]... Vertical   Split & Explore              *:Vexplore*
 
      Used with :Explore **/pattern : (also see |netrw-starstar|)
      :Nexplore............. go to next matching file                *:Nexplore*
@@ -1069,6 +1104,13 @@ DIRECTORY EXPLORATION COMMANDS  {{{2
 
 By default, these commands use the current file's directory.  However, one
 may explicitly provide a directory (path) to use.
+
+:Rexplore  This command is a little different from the others.  When one
+           edits a file, for example by pressing <cr> when atop a file in
+	   a netrw browser window, :Rexplore will return the display to
+	   that of the last netrw browser window.  Its a command version
+	   of <2-leftmouse> (which is only available under gvim and
+	   cooperative terms).
 
 							*netrw-starstar*
 When Explore, Sexplore, Hexplore, or Vexplore are used with a **/filepat,
@@ -1268,6 +1310,15 @@ set Vim's notion of the current directory to netrw's current browsing
 directory.
 
 
+MARKED FILES: ARBITRARY COMMAND				*netrw-mx* {{{2
+     (See |netrw-mf| and |netrw-mr| for how to mark files)
+
+Upon activation of the "mx" map, netrw will query the user for some command to
+be applied to all marked files.  All %s in the command will be substituted
+with the name of a marked file.  If no %s are in the command, then the command
+will be followed by a space and a marked filename.
+
+
 MARKED FILES: COMPRESSION AND DECOMPRESSION		*netrw-mz* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
 
@@ -1330,6 +1381,7 @@ entering *.c probably isn't what you want!
 
 
 NETRW BROWSER VARIABLES				*netrw-browse-var* {{{2
+	(also see |netrw-settings|)
 >
    ---				-----------
    Var				Explanation
@@ -1518,9 +1570,6 @@ If either of these options are present when browsing is attempted, netrw
 will change them by using noacd and removing the ta suboptions from the
 |'formatoptions'|.
 
-			*netrw-explore*  *netrw-pexplore* *netrw-texplore*
-			*netrw-hexplore* *netrw-sexplore* *netrw-nexplore*
-			*netrw-vexplore*
 NETRW SETTINGS						*netrw-settings* {{{2
 
 With the NetrwSettings.vim plugin, >
@@ -1869,6 +1918,14 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v112: Aug 18, 2007 * added mx (|netrw-mx|) for executing arbitrary
+	                     commands on marked files
+	      Aug 22, 2007 * more option save/restore work for
+	                     s:NetrwBrowseChgDir(); s:NetrwOptionSave()
+			     and s:NetrwOptionRestore() now take a parameter
+			     specifying the type of variables to be used for
+			     saving and restoring (either "w:" or "s:")
+	      Sep 04, 2007 * added the :NetrwClean[!] command
 	v111: Jul 25, 2007 * using Windows but not using Cygwin, netrw does a
 	                     "file bufname" where the bufname uses /s
 			     instead of \s; Vim "fixes" it by changing the
@@ -1879,7 +1936,7 @@ which is loaded automatically at startup (assuming :set nocp).
 			     to have been moved when doing a preview.
 			   * added <2-leftmouse> map to return to netrw's
 			     browser display
-			   * added the mark-file system, including
+	      Aug 16, 2007 * added the mark-file system, including
 			     maps for mf mp mt mz and mu.  Modifications
 			     made to maps for a D O and R to support
 			     marked files.
@@ -2308,4 +2365,5 @@ which is loaded automatically at startup (assuming :set nocp).
 	                           operation
 
 ==============================================================================
+Modelines: {{{1
  vim:tw=78:ts=8:ft=help:norl:fdm=marker

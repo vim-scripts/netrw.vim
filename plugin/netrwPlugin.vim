@@ -79,7 +79,8 @@ com! -nargs=* -bar -bang			Nexplore	call netrw#Explore(-1,0,0,<q-args>)
 com! -nargs=* -bar -bang			Pexplore	call netrw#Explore(-2,0,0,<q-args>)
 
 " Commands: NetrwSettings {{{2
-com! -nargs=0 NetrwSettings :call netrwSettings#NetrwSettings()
+com! -nargs=0	NetrwSettings	call netrwSettings#NetrwSettings()
+com! -bang	NetrwClean	call netrw#NetrwClean(<bang>0)
 
 " Maps:
 if !exists("g:netrw_nogx") && maparg('g','n') == ""
