@@ -116,9 +116,11 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_keepdir           = '.g:netrw_keepdir
   put = 'let g:netrw_list_cmd          = '.g:netrw_list_cmd
   put = 'let g:netrw_list_hide         = '.g:netrw_list_hide
-  put = 'let g:netrw_local_mkdir       = '.g:netrw_local_mkdir
-  put = 'let g:netrw_local_rmdir       = '.g:netrw_local_rmdir
   put = 'let g:netrw_liststyle         = '.g:netrw_liststyle
+  put = 'let g:netrw_localcopycmd      = '.g:netrw_localcopycmd
+  put = 'let g:netrw_local_mkdir       = '.g:netrw_local_mkdir
+  put = 'let g:netrw_localmovecmd      = '.g:netrw_localmovecmd
+  put = 'let g:netrw_local_rmdir       = '.g:netrw_local_rmdir
   put = 'let g:netrw_maxfilenamelen    = '.g:netrw_maxfilenamelen
   put = 'let g:netrw_menu              = '.g:netrw_menu
   put = 'let g:netrw_mkdir_cmd         = '.g:netrw_mkdir_cmd

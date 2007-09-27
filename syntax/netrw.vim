@@ -13,7 +13,7 @@ endif
 
 " ---------------------------------------------------------------------
 " Directory List Syntax Highlighting: {{{1
-syn cluster NetrwGroup contains=netrwHide,netrwSortBy,netrwSortSeq,netrwQuickHelp,netrwVersion
+syn cluster NetrwGroup contains=netrwHide,netrwSortBy,netrwSortSeq,netrwQuickHelp,netrwVersion,netrwCopyTgt
 
 syn match  netrwSpecial		"\%(\S\+ \)*\S\+[*|=]\ze\%(\s\{2,}\|$\)" contains=netrwClassify
 syn match  netrwDir		"\.\{1,2}/"			contains=netrwClassify
@@ -36,6 +36,7 @@ syn match  netrwHidePat		"[^,]\+"			contained skipwhite nextgroup=netrwHideSep
 syn match  netrwHideSep		","				contained transparent skipwhite nextgroup=netrwHidePat
 syn match  netrwSortBy		"Sorted by"			contained transparent skipwhite nextgroup=netrwList
 syn match  netrwSortSeq		"Sort sequence:"		contained transparent skipwhite nextgroup=netrwList
+syn match  netrwCopyTgt		"Copy/Move Tgt:"		contained transparent skipwhite nextgroup=netrwList
 syn match  netrwList		".*$"				contained contains=netrwComma
 syn match  netrwComma		","				contained
 syn region netrwQuickHelp	matchgroup=Comment start="Quick Help:\s\+" end="$" contains=netrwHelpCmd keepend contained
