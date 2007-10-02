@@ -1,7 +1,7 @@
 " netrw.vim: Handles file transfer and remote directory listing across
 "            AUTOLOAD SECTION
-" Date:		Sep 27, 2007
-" Version:	113
+" Date:		Oct 02, 2007
+" Version:	114
 " Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
@@ -30,7 +30,7 @@ if !exists("s:NOTE")
  let s:WARNING = 1
  let s:ERROR   = 2
 endif
-let g:loaded_netrw = "v113"
+let g:loaded_netrw = "v114"
 if v:version < 700
  call netrw#ErrorMsg(s:WARNING,"you need vim version 7.0 or later for version ".g:loaded_netrw." of netrw",1)
  finish
@@ -3264,6 +3264,14 @@ fun! s:NetrwMarkFileTag(islocal)
     endif
    else
     let cmd= s:RemoteSystem(g:netrw_ctags." ".netrwmarkfilelist)
+    call netrw#NetrwObtain(a:islocal,"tags")
+    let curdir= b:netrw_curdir
+    1split
+    e tags
+    let path= substitute(curdir,'^\(.*\)/[^/]*$','\1/','')
+"    call Decho("curdir<".curdir."> path<".path.">")
+    exe '%s/\t\(\S\+\)\t/\t'.escape(path,'/').'\1\t/e'
+    wq!
    endif
    2match none
    call s:NetrwRefresh(a:islocal,s:NetrwBrowseChgDir(a:islocal,'./'))
@@ -3451,16 +3459,17 @@ fun! netrw#NetrwObtain(islocal,fname,...)
    ".........................................
    else
     " scp: Method#4
-"   call Decho("using scp")
+"    call Decho("using scp")
     let curdir = b:netrw_curdir
     let path   = substitute(curdir,'scp://[^/]\+/','','e')
-"   call Decho("path<".path.">")
+"    call Decho("path<".path.">")
     if exists("g:netrw_port") && g:netrw_port != ""
      let useport= " ".g:netrw_scpport." ".g:netrw_port
     else
      let useport= ""
     endif
-"   call Decho("executing: !".g:netrw_scp_cmd.useport." ".g:netrw_machine.":".path.escape(a:fname,' ?&')." ".tgtdir)
+"    call Decho("pwd<".getcwd().">")
+"    call Decho("executing: !".g:netrw_scp_cmd.useport." ".g:netrw_machine.":".path.escape(a:fname,' ?&')." ".tgtdir)
     exe g:netrw_silentxfer."!".g:netrw_scp_cmd.useport." ".g:netrw_machine.":".path.escape(a:fname,' ?&')." ".tgtdir
     endif
 
@@ -4796,7 +4805,10 @@ fun! s:NetrwBookmarkDir(chg,curdir)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwBookmarkMenu: {{{2
+" s:NetrwBookmarkMenu: Uses menu priorities {{{2
+"                      .2.[cnt] for bookmarks, and
+"                      .3.[cnt] for history
+"                      (see s:NetrwMenu())
 fun! s:NetrwBookmarkMenu()
   if !exists("s:netrw_menucnt")
    return
@@ -4934,34 +4946,49 @@ fun! s:NetrwMenu(domenu)
    if !exists("s:netrw_menu_enabled") && a:domenu
 "    call Decho("initialize menu")
     let s:netrw_menu_enabled= 1
-    exe 'silent! menu '.g:NetrwMenuPriority.'.1 '.g:NetrwTopLvlMenu.'Help<tab><F1>	<F1>'
-    call s:NetrwBookmarkMenu() " provide some history!
-    exe 'silent! menu '.g:NetrwMenuPriority.'.4 '.g:NetrwTopLvlMenu.'Go\ Up\ Directory<tab>-	-'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.5 '.g:NetrwTopLvlMenu.'Apply\ Special\ Viewer<tab>x	x'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.6 '.g:NetrwTopLvlMenu.'Bookmark\ Current\ Directory<tab>mb	mb'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.7 '.g:NetrwTopLvlMenu.'Goto\ Bookmarked\ Directory<tab>gb	gb'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.8 '.g:NetrwTopLvlMenu.'Change\ To\ Recently\ Used\ Directory<tab>u	u'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.9 '.g:NetrwTopLvlMenu.'Change\ To\ Subsequently\ Used\ Directory<tab>U	U'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.10 '.g:NetrwTopLvlMenu.'Delete\ File/Directory<tab>D	D'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.11 '.g:NetrwTopLvlMenu.'Edit\ File\ Hiding\ List<tab>'."<ctrl-h>	\<Plug>NetrwHideEdit"
-    exe 'silent! menu '.g:NetrwMenuPriority.'.12 '.g:NetrwTopLvlMenu.'Edit\ File/Directory<tab><cr>	'."\<cr>"
-    exe 'silent! menu '.g:NetrwMenuPriority.'.13 '.g:NetrwTopLvlMenu.'Edit\ File/Directory,\ New\ Window<tab>o	o'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.14 '.g:NetrwTopLvlMenu.'Edit\ File/Directory,\ New\ Vertical\ Window<tab>v	v'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.15 '.g:NetrwTopLvlMenu.'List\ Bookmarks\ and\ History<tab>q	q'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.16 '.g:NetrwTopLvlMenu.'Listing\ Style\ (thin-long-wide-tree)<tab>i	i'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.17 '.g:NetrwTopLvlMenu.'Make\ Subdirectory<tab>d	d'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.18 '.g:NetrwTopLvlMenu.'Mark\ File<tab>mf	mf'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.19 '.g:NetrwTopLvlMenu.'Normal-Hide-Show<tab>a	a'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.20 '.g:NetrwTopLvlMenu.'Obtain\ File<tab>O	O'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.21 '.g:NetrwTopLvlMenu.'Preview\ File/Directory<tab>p	p'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.22 '.g:NetrwTopLvlMenu.'Previous\ Window\ Browser<tab>P	P'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.23 '.g:NetrwTopLvlMenu.'Refresh\ Listing<tab>'."<ctrl-l>	\<Plug>NetrwRefresh"
-    exe 'silent! menu '.g:NetrwMenuPriority.'.24 '.g:NetrwTopLvlMenu.'Rename\ File/Directory<tab>R	R'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.25 '.g:NetrwTopLvlMenu.'Reverse\ Sorting\ Order<tab>'."r	r"
-    exe 'silent! menu '.g:NetrwMenuPriority.'.26 '.g:NetrwTopLvlMenu.'Select\ Sorting\ Style\ (name-time-size)<tab>s	s'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.27 '.g:NetrwTopLvlMenu.'Sorting\ Sequence\ Edit<tab>S	S'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.28 '.g:NetrwTopLvlMenu.'Set\ Current\ Directory<tab>c	c'
-    exe 'silent! menu '.g:NetrwMenuPriority.'.29 '.g:NetrwTopLvlMenu.'Settings/Options<tab>:NetrwSettings	'.":NetrwSettings\<cr>"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.1     '.g:NetrwTopLvlMenu.'Help<tab><F1>	<F1>'
+    call s:NetrwBookmarkMenu() " provide some history!  uses priorities 2,3, reserves 4
+    exe 'silent! menu '.g:NetrwMenuPriority.'.5     '.g:NetrwTopLvlMenu.'-Sep1-	:'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.6     '.g:NetrwTopLvlMenu.'Go\ Up\ Directory<tab>-	-'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.7     '.g:NetrwTopLvlMenu.'Apply\ Special\ Viewer<tab>x	x'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.8.1   '.g:NetrwTopLvlMenu.'Bookmarks\ and\ History.Bookmark\ Current\ Directory<tab>mb	mb'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.8.2   '.g:NetrwTopLvlMenu.'Bookmarks\ and\ History.Goto\ Bookmark<tab>gb	gb'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.8.3   '.g:NetrwTopLvlMenu.'Bookmarks\ and\ History.List<tab>q	q'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.8.4   '.g:NetrwTopLvlMenu.'Bookmarks\ and\ History.Goto\ Prev\ Dir<tab>u	u'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.8.5   '.g:NetrwTopLvlMenu.'Bookmarks\ and\ History.Goto\ Next\ Dir<tab>U	U'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.9.1   '.g:NetrwTopLvlMenu.'Browsing\ Control.Edit\ File\ Hiding\ List<tab>'."<ctrl-h>	\<Plug>NetrwHideEdit"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.9.2   '.g:NetrwTopLvlMenu.'Browsing\ Control.Edit\ Sorting\ Sequence<tab>S	S'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.9.3   '.g:NetrwTopLvlMenu.'Browsing\ Control.Refresh\ Listing<tab>'."<ctrl-l>	\<Plug>NetrwRefresh"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.9.4   '.g:NetrwTopLvlMenu.'Browsing\ Control.Settings/Options<tab>:NetrwSettings	'.":NetrwSettings\<cr>"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.10    '.g:NetrwTopLvlMenu.'Delete\ File/Directory<tab>D	D'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.11.1  '.g:NetrwTopLvlMenu.'Edit\ File/Dir.In\ Current\ Window<tab><cr>	'."\<cr>"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.11.2  '.g:NetrwTopLvlMenu.'Edit\ File/Dir.Preview\ File/Directory<tab>p	p'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.11.3  '.g:NetrwTopLvlMenu.'Edit\ File/Dir.In\ Previous\ Window<tab>P	P'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.11.4  '.g:NetrwTopLvlMenu.'Edit\ File/Dir.In\ New\ Window<tab>o	o'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.11.5  '.g:NetrwTopLvlMenu.'Edit\ File/Dir.In\ New\ Vertical\ Window<tab>v	v'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.12    '.g:NetrwTopLvlMenu.'Make\ Subdirectory<tab>d	d'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.1  '.g:NetrwTopLvlMenu.'Marked\ Files.Mark\ File<tab>mf	mf'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.2  '.g:NetrwTopLvlMenu.'Marked\ Files.Mark\ Files\ by\ Regexp<tab>mr	mr'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.3  '.g:NetrwTopLvlMenu.'Marked\ Files.Hide-Show-List\ Control<tab>a	a'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.4  '.g:NetrwTopLvlMenu.'Marked\ Files.Copy\ To\ Target<tab>mc	mc'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.5  '.g:NetrwTopLvlMenu.'Marked\ Files.Delete<tab>D	D'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.6  '.g:NetrwTopLvlMenu.'Marked\ Files.Diff<tab>md	md'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.7  '.g:NetrwTopLvlMenu.'Marked\ Files.Edit<tab>me	me'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.8  '.g:NetrwTopLvlMenu.'Marked\ Files.Exe\ Cmd<tab>mx	mx'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.9  '.g:NetrwTopLvlMenu.'Marked\ Files.Move\ To\ Target<tab>mm	mm'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.10 '.g:NetrwTopLvlMenu.'Marked\ Files.Obtain<tab>O	O'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.11 '.g:NetrwTopLvlMenu.'Marked\ Files.Print<tab>mp	mp'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.12 '.g:NetrwTopLvlMenu.'Marked\ Files.Replace<tab>R	R'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.13 '.g:NetrwTopLvlMenu.'Marked\ Files.Set\ Target<tab>mt	mt'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.14 '.g:NetrwTopLvlMenu.'Marked\ Files.Tag<tab>mT	mT'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.13.15 '.g:NetrwTopLvlMenu.'Marked\ Files.Zip/Unzip/Compress/Uncompress<tab>mz	mz'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.14    '.g:NetrwTopLvlMenu.'Obtain\ File<tab>O	O'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.16.1  '.g:NetrwTopLvlMenu.'Style.Listing\ Style\ (thin-long-wide-tree)<tab>i	i'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.16.2  '.g:NetrwTopLvlMenu.'Style.Normal-Hide-Show<tab>a	a'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.16.3  '.g:NetrwTopLvlMenu.'Style.Reverse\ Sorting\ Order<tab>'."r	r"
+    exe 'silent! menu '.g:NetrwMenuPriority.'.16.4  '.g:NetrwTopLvlMenu.'Style.Sorting\ Method\ (name-time-size)<tab>s	s'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.17    '.g:NetrwTopLvlMenu.'Rename\ File/Directory<tab>R	R'
+    exe 'silent! menu '.g:NetrwMenuPriority.'.18    '.g:NetrwTopLvlMenu.'Set\ Current\ Directory<tab>c	c'
     let s:netrw_menucnt= 28
 
    elseif !a:domenu
@@ -4972,36 +4999,8 @@ fun! s:NetrwMenu(domenu)
 
     if s:netrwcnt <= 1
 "     call Decho("clear menus")
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Help'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Apply\ Special\ Viewer'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Bookmark\ Current\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Go\ Up\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Goto\ Bookmarked\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Change\ To\ Recently\ Used\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Change\ To\ Subsequently\ Used\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Delete\ File/Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Edit\ File/Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Edit\ File/Directory,\ New\ Window'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Edit\ File/Directory,\ New\ Vertical\ Window'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Edit\ File\ Hiding\ List'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Edit\ File'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Enter\ File/Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Enter\ File/Directory\ (vertical\ split)'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'List\ Bookmarks\ and\ History'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Listing\ Style\ (thin-long-wide)'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Make\ Subdirectory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Normal-Hide-Show'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Obtain\ File'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Preview\ File/Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Previous\ Window\ Browser'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Refresh\ Listing'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Rename\ File/Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Reverse\ Sorting\ Order'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Select\ Sorting\ Style'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Sorting\ Sequence\ Edit'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Set\ Current\ Directory'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Settings/Options'
-     exe 'silent! unmenu '.g:NetrwTopLvlMenu.'Bookmarks'
+     exe 'silent! unmenu '.g:NetrwTopLvlMenu
+"     call Decho('exe silent! unmenu '.g:NetrwTopLvlMenu.'*')
      silent! unlet s:netrw_menu_enabled
     endif
    endif

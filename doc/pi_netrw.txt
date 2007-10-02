@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Sep 27
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Oct 02
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -49,7 +49,7 @@
       Editing The Sorting Sequence.......................|netrw-S|
       Going Up...........................................|netrw--|
       Hiding Files Or Directories........................|netrw-a|
-      Improving Browsing.................................|netrw-listhack|
+      Improving Browsing.................................|netrw-ssh-hack|
       Listing Bookmarks And History......................|netrw-q|
       Making A New Directory.............................|netrw-d|
       Making The Browsing Directory The Current Directory|netrw-c|
@@ -95,7 +95,7 @@ account on some other machine; if you can use scp, try: >
 
 	vim scp://hostname/path/to/file
 <
-Want to make ssh/scp easier to use? Check out |netrw-listhack|!
+Want to make ssh/scp easier to use? Check out |netrw-ssh-hack|!
 
 So, what if you have ftp, not ssh/scp?  That's easy, too; try >
 
@@ -239,7 +239,7 @@ CHANGING USERID AND PASSWORD		*netrw-chgup* *netrw-userpass* {{{2
 	first.  To work around the need to enter passwords, check if your ftp
 	supports a <.netrc> file in your home directory.  Also see
 	|netrw-passwd| (and if you're using ssh/scp hoping to figure out how
-	to not need to use passwords, look at |netrw-listhack|).
+	to not need to use passwords, look at |netrw-ssh-hack|).
 
 	:NetUserPass [uid [password]]		-- prompts as needed
 	:call NetUserPass()			-- prompts for uid and password
@@ -492,7 +492,7 @@ after one has set it.
 
 Unfortunately there doesn't appear to be a way for netrw to feed a password to
 scp.  Thus every transfer via scp will require re-entry of the password.
-However, |netrw-listhack| can help with this problem.
+However, |netrw-ssh-hack| can help with this problem.
 
 
 ==============================================================================
@@ -800,7 +800,7 @@ easy to miss: to browse remote directories, the url must terminate with a
 slash!
 
 If you'd like to avoid entering the password repeatedly for remote directory
-listings with ssh or scp, see |netrw-listhack|.  To avoid password entry with
+listings with ssh or scp, see |netrw-ssh-hack|.  To avoid password entry with
 ftp, see |netrw-netrc| (if your ftp supports it).
 
 There are several things you can do to affect the browser's display of files:
@@ -1314,7 +1314,7 @@ If files have been marked using |netrw-mf|, then this command will:
   endif
 
 					*netrw-ctrl_h*
-IMPROVING BROWSING					*netrw-listhack* {{{2
+IMPROVING BROWSING			*netrw-listhack* *netrw-ssh-hack* {{{2
 
 Especially with the remote directory browser, constantly entering the password
 is tedious.
@@ -1342,6 +1342,20 @@ I'll attempt a summary:
 
 For Windows, folks on the vim mailing list have mentioned that Pageant helps
 with avoiding the constant need to enter the password.
+
+Kingston Fung wrote about another way to avoid constantly needing to enter
+passwords:
+
+    In order to avoid the need to type in the password for scp each time, you
+    provide a hack in the docs to set up a non password ssh account. I found a
+    better way to do that: I can use a regular ssh account which uses a
+    password to access the material without the need to key-in the password
+    each time. It's good for security and convenience. I tried ssh public key
+    authorization + ssh-agent, implementing this, and it works! Here are two
+    links with instructions:
+
+    http://www.ibm.com/developerworks/library/l-keyc2/
+    http://sial.org/howto/openssh/publickey-auth/
 
 
 LISTING BOOKMARKS AND HISTORY		*netrw-q* *netrw-listbookmark* {{{2
@@ -1398,7 +1412,7 @@ associated decompressing utilities; see |g:netrw_decompress|.
 MARKED FILES: COPYING					*netrw-mc* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
 
-Select a target directory with mT (|netrw-mT|).  Then change directory,
+Select a target directory with mT (|netrw-mt|).  Then change directory,
 select file(s) (see |netrw-mf|), and press "mc".
 
 MARKED FILES: DIFF					*netrw-md* {{{2
@@ -1416,7 +1430,7 @@ editing them.  One may return the to explorer window with |:Rexplore|.
 MARKED FILES: MOVING						*netrw-mm* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
 
-Select a target directory with mT (|netrw-mT|).  Then change directory,
+Select a target directory with mT (|netrw-mt|).  Then change directory,
 select file(s) (see |netrw-mf|), and press "mm".
 
 MARKED FILES: PRINTING					*netrw-mp* {{{2
@@ -1436,6 +1450,14 @@ netrw will use ssh (see |g:netrw_ssh_cmd|), and so ssh must be available for
 this to work on remote systems.  For your local system, see |ctags| on how to
 get a version.  I myself use hdrtags, currently available at
 http://mysite.verizon.net/astronaut/src/index.html .
+
+When a remote set of files are tagged, the resulting tags file is "obtained";
+ie. a copy is transferred to the local system's directory.  The local tags
+file is then modified so that one may use it through the network.  The
+modification is concerns the names of the files in the tags; each filename is
+preceded by the netrw-compatible url used to obtain it.  When one subsequently
+uses one of the go to tag actions (|tags|), the url will be used by netrw to
+edit the desired file and go to the tag.
 
 
 MARKED FILES: SETTING TARGET DIRECTORY				*netrw-mt* {{{2
@@ -1457,13 +1479,16 @@ One may mark files with the cursor atop a filename and then pressing "mf".
 With gvim, one may also mark files with <s-leftmouse>.  The following netrw
 maps make use of marked files:
 
-|netrw-md| |netrw-me| |netrw-mp| |netrw-mt| |netrw-mz|
-|netrw-a|  |netrw-D|  |netrw-O|  |netrw-R|
+  |netrw-a| |netrw-O| |netrw-mc| |netrw-me| |netrw-mp| |netrw-mx|               
+  |netrw-D| |netrw-R| |netrw-md| |netrw-mm| |netrw-mT| |netrw-mz|               
 
 One may unmark files one at a time the same way one marks them; ie. place
 the cursor atop a marked file and press "mf".  This process also works
 with <s-leftmouse> using gvim.  One may unmark all files by pressing
 "mu" (see |netrw-mu|).
+
+Two commands, |netrw-mc| and |netrw-mm|, copy/move marked files to a
+target directory (which can be set with |netrw-mt|).
 
 
 MARKING FILES BY REGULAR EXPRESSION			*netrw-mr* {{{2
@@ -1596,12 +1621,12 @@ your browsing preferences.  (see also: |netrw-settings|)
   *g:netrw_localcopycmd*	="cp" Linux/Unix/MacOS/Cygwin
   				="copy" Windows
 				Copies marked files (|netrw-mf|) to target
-				directory (|netrw-mT|, |netrw-mc|)
+				directory (|netrw-mt|, |netrw-mc|)
 
   *g:netrw_localmovecmd*	="mv" Linux/Unix/MacOS/Cygwin
   				="move" Windows
 				Moves marked files (|netrw-mf|) to target
-				directory (|netrw-mT|, |netrw-mm|)
+				directory (|netrw-mt|, |netrw-mm|)
 
   *g:netrw_local_mkdir*		command for making a local directory
 				 default: "mkdir"
@@ -2056,6 +2081,9 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v114: Sep 28, 2007 * mT, the map that invokes tags, has been improved
+			     to support use of remote tags files.
+	      Oct 02, 2007 * changed Netrw menu to use more submenus
 	v113: Sep 07, 2007 * worked out why the cursor position wasn't being
 			     saved and restored as intended after doing such
 			     things as deleting and renaming files.
