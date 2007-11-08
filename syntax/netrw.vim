@@ -47,7 +47,7 @@ syn match  netrwVersion		"(netrw.*)"			contained
 
 " ---------------------------------------------------------------------
 " Highlighting Links: {{{1
-if !exists("did_drchip_dbg_syntax")
+if !exists("did_drchip_netrwlist_syntax")
  let did_drchip_netrwlist_syntax= 1
  hi link netrwClassify	Function
  hi link netrwCmdSep	Delimiter

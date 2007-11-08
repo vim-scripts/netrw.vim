@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Oct 02
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Oct 27
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -146,9 +146,9 @@ EXTERNAL APPLICATIONS AND PROTOCOLS			*netrw-externapp* {{{2
 	   dav:    *g:netrw_dav_cmd*  = "cadaver"
 	 fetch:  *g:netrw_fetch_cmd*  = "fetch -o"    if fetch is available
 	   ftp:    *g:netrw_ftp_cmd*  = "ftp"
-	  http:   *g:netrw_http_cmd*  = "curl -o"     if      curl  is available
-	  http:    g:netrw_http_cmd   = "wget -q -O"  else if wget  is available
-          http:    g:netrw_http_cmd   = "fetch -o"    else if fetch is available
+	  http:   *g:netrw_http_cmd*  = "curl -o"     if     curl  is available
+	  http:    g:netrw_http_cmd   = "wget -q -O"  elseif wget  is available
+          http:    g:netrw_http_cmd   = "fetch -o"    elseif fetch is available
 	   rcp:    *g:netrw_rcp_cmd*  = "rcp"
 	 rsync:  *g:netrw_rsync_cmd*  = "rsync -a"
 	   scp:    *g:netrw_scp_cmd*  = "scp -q"
@@ -271,8 +271,8 @@ NETRW VARIABLES AND SETTINGS				*netrw-variables* {{{2
 
  *g:netrw_ignorenetrc*	=0 (default for linux, cygwin)
 			=1 If you have a <.netrc> file but it doesn't work and
-			   you want it ignored, then set this variable as shown.
-			   (default for Windows + cmd.exe)
+			   you want it ignored, then set this variable as
+			   shown. (default for Windows + cmd.exe)
 
  *g:netrw_menu*		=0 disable netrw's menu
 			=1 (default) netrw's menu enabled
@@ -286,8 +286,8 @@ NETRW VARIABLES AND SETTINGS				*netrw-variables* {{{2
  *g:netrw_preview*	=0 (default) preview window shown in a horizontally
                            split window
 			=1 preview window shown in a vertically split window.
-			Affects the "previous window" (see |netrw-P|) the same
-			way.
+			Also affects the "previous window" (see |netrw-P|) in
+			the same way.
 
  *g:netrw_shq*		= "'" for Unix/Linux systems (ie. a single quote)
 			= "'" for Windows + cygwin systems (ie. a single quote)
@@ -637,7 +637,7 @@ temporarily.
 	g:netrw_fname		Holds filename being accessed >
 	------------------------------------------------------------
 <
-								*netrw-protocol*
+							*netrw-protocol*
 
 Netrw supports a number of protocols.  These protocols are invoked using the
 variables listed below, and may be modified by the user.
@@ -922,7 +922,23 @@ button.  A doubly-clicked leftmouse button will return to the netrw browser
 window (unless |g:netrw_noretmap| is used, or the double-click leftmouse map
 is already defined before netrw is loaded).
 
+Netrw attempts to speed up browsing, especially for remote browsing where one
+may have to enter passwords, by keeping and re-using previously obtained
+directory listing buffers.  The |g:netrw_fastbrowse| variable is used to
+control this behavior; one may have slow browsing (no buffer re-use), medium
+speed browsing (re-use directory buffer listings only for remote directories),
+and fast browsing (re-use directory buffer listings as often as possible).
+The price for such re-use is that when changes are made (such as new files
+are introduced into a directory), the listing may become out-of-date.  One may
+always refresh directory listing buffers by pressing ctrl-L (see
+|netrw-ctrl-l|).
+
+
 Related topics: |netrw-o| |netrw-p| |netrw-P| |netrw-t| |netrw-v|
+Associated setting variables: |g:netrw_browse_split|      |g:netrw_fastbrowse|
+                              |g:netrw_ftp_list_cmd| |g:netrw_ftp_sizelist_cmd|
+			      |g:netrw_ftp_timelist_cmd|  |g:netrw_ssh_cmd|
+			      |g:netrw_ssh_browse_reject| |g:netrw_use_noswf|
 
 
 BROWSING WITH A HORIZONTALLY SPLIT WINDOW	*netrw-o* *netrw-horiz* {{{2
@@ -937,10 +953,12 @@ new window and cursor at the bottom, have
 
 	let g:netrw_alto = 1
 
-in your <.vimrc>.  (also see |netrw-t| |netrw-v| |g:netrw_alto|)
+in your <.vimrc>.  (also see |netrw-t| |netrw-v|)
 
 There is only one tree listing buffer; using "o" on a displayed subdirectory 
 will split the screen, but the same buffer will be shown twice.
+
+Associated setting variables: |g:netrw_alto| |g:netrw_winsize|
 
 
 BROWSING WITH A NEW TAB				*netrw-t* {{{2
@@ -962,11 +980,12 @@ window and cursor at the right, have
 
 	let g:netrw_altv = 1
 
-in your <.vimrc>.  (also see: |netrw-o| |netrw-t| |g:netrw_altv|)
+in your <.vimrc>.  (also see: |netrw-o| |netrw-t|)
 
 There is only one tree listing buffer; using "v" on a displayed subdirectory 
 will split the screen, but the same buffer will be shown twice.
 
+Associated setting variable: |g:netrw_altv| |g:netrw_winsize|
 
 CHANGE LISTING STYLE					*netrw-i* {{{2
 
@@ -991,6 +1010,9 @@ preceded by a "|".  One may open and close directories by pressing the <cr>
 key while atop the directory name.  There is only one tree listing buffer;
 hence, using "v" or "o" on a subdirectory will only show the same buffer,
 twice.
+
+Associated setting variables: |g:netrw_liststyle| |g:netrw_maxfilenamelen|
+                              |g:netrw_timefmt|   |g:netrw_list_cmd|
 
 
 CHANGING TO A BOOKMARKED DIRECTORY			*netrw-gb*  {{{2
@@ -1102,6 +1124,8 @@ If more such translations are necessary, please send me email: >
 		NdrOchip at ScampbellPfamily.AbizM - NOSPAM
 with a request.
 
+Associated setting variable: |g:netrw_browsex_viewer|
+
 							*netrw-curdir*
 DELETING FILES OR DIRECTORIES	*netrw-delete* *netrw-D* *netrw-del* {{{2
 
@@ -1135,6 +1159,10 @@ If removing a directory fails with g:netrw_rmdir_cmd, netrw then will attempt
 to remove it again using the g:netrw_rmf_cmd variable.  Its default value is:
 
 	g:netrw_rmf_cmd: ssh HOSTNAME rm -f
+
+Associated setting variable: |g:netrw_local_rmdir| |g:netrw_rm_cmd|
+                             |g:netrw_rmdir_cmd|   |g:netrw_ssh_cmd|
+
 
 *netrw-explore*  *netrw-hexplore* *netrw-nexplore* *netrw-pexplore*
 *netrw-rexplore* *netrw-sexplore* *netrw-texplore* *netrw-vexplore*
@@ -1233,6 +1261,12 @@ then Explore will use |:vimgrep| to find files like |netrw-starpat|;
 however, Explore will also search subdirectories as well as the current
 directory.
 
+Associated setting variables: |g:netrw_keepdir|      |g:netrw_browse_split|
+                              |g:netrw_fastbrowse|   |g:netrw_ftp_browse_reject|
+			      |g:netrw_ftp_list_cmd| |g:netrw_ftp_sizelist_cmd|
+			      |g:netrw_ftp_timelist_cmd| |g:netrw_list_cmd|
+			      |g:netrw_liststyle|
+
 
 EDIT FILE OR DIRECTORY HIDING LIST	*netrw-ctrl-h* *netrw-edithide* {{{2
 
@@ -1241,6 +1275,8 @@ file/directory hiding list.  The hiding list consists of one or more patterns
 delimited by commas.  Files and/or directories satisfying these patterns will
 either be hidden (ie. not shown) or be the only ones displayed (see
 |netrw-a|).
+
+Associated setting variable: |g:netrw_hide|
 
 
 EDITING THE SORTING SEQUENCE	*netrw-S* *netrw-sortsequence* {{{2
@@ -1256,6 +1292,9 @@ The lone * is where all filenames not covered by one of the other patterns
 will end up.  One may change the sorting sequence by modifying the
 g:netrw_sort_sequence variable (either manually or in your <.vimrc>) or by
 using the "S" map.
+
+Related topics:              |g:netrw-s| |g:netrw-S|
+Associated setting variable: |g:netrw_sort_sequence|
 
 
 GOING UP						*netrw--* {{{2
@@ -1312,6 +1351,8 @@ If files have been marked using |netrw-mf|, then this command will:
    modify the g:netrw_list_hide list by removing the marked files from it
    and showing only non-hidden files.
   endif
+
+Associated setting variable: |g:netrw_list_hide|
 
 					*netrw-ctrl_h*
 IMPROVING BROWSING			*netrw-listhack* *netrw-ssh-hack* {{{2
@@ -1373,6 +1414,8 @@ directory's name.  A bare <CR> at that point will abort the making of the
 directory.  Attempts to make a local directory that already exists (as either
 a file or a directory) will be detected, reported on, and ignored.
 
+Associated setting variable: |g:netrw_local_mkdir| |g:netrw_mkdir_cmd|
+
 
 MAKING THE BROWSING DIRECTORY THE CURRENT DIRECTORY	*netrw-c* {{{2
 
@@ -1387,6 +1430,8 @@ maintains its own separate notion of the current directory, in order to make
 the two directories the same, use the "c" map (just type c).  That map will
 set Vim's notion of the current directory to netrw's current browsing
 directory.
+
+Associated setting variable: |g:netrw_keepdir|
 
 
 MARKED FILES: ARBITRARY COMMAND				*netrw-mx* {{{2
@@ -1409,11 +1454,15 @@ that's "gzip".
 For decompression, netrw provides a |Dictionary| of suffices and their
 associated decompressing utilities; see |g:netrw_decompress|.
 
+Associated setting variables: |g:netrw_compress| |g:netrw_decompress|
+
 MARKED FILES: COPYING					*netrw-mc* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
 
-Select a target directory with mT (|netrw-mt|).  Then change directory,
+Select a target directory with mt (|netrw-mt|).  Then change directory,
 select file(s) (see |netrw-mf|), and press "mc".
+
+Associated setting variable: |g:netrw_localcopycmd| |g:netrw_ssh_cmd|
 
 MARKED FILES: DIFF					*netrw-md* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
@@ -1433,6 +1482,8 @@ MARKED FILES: MOVING						*netrw-mm* {{{2
 Select a target directory with mT (|netrw-mt|).  Then change directory,
 select file(s) (see |netrw-mf|), and press "mm".
 
+Associated setting variable: |g:netrw_localmovecmd| |g:netrw_ssh_cmd|
+
 MARKED FILES: PRINTING					*netrw-mp* {{{2
      (See |netrw-mf| and |netrw-mr| for how to mark files)
 
@@ -1449,7 +1500,11 @@ The "mt" mapping will apply the command in |g:netrw_ctags| (by default, its
 netrw will use ssh (see |g:netrw_ssh_cmd|), and so ssh must be available for
 this to work on remote systems.  For your local system, see |ctags| on how to
 get a version.  I myself use hdrtags, currently available at
-http://mysite.verizon.net/astronaut/src/index.html .
+http://mysite.verizon.net/astronaut/src/index.html , and have >
+
+	let g:netrw_ctags= "hdrtag"
+<
+in my <.vimrc>.
 
 When a remote set of files are tagged, the resulting tags file is "obtained";
 ie. a copy is transferred to the local system's directory.  The local tags
@@ -1458,6 +1513,8 @@ modification is concerns the names of the files in the tags; each filename is
 preceded by the netrw-compatible url used to obtain it.  When one subsequently
 uses one of the go to tag actions (|tags|), the url will be used by netrw to
 edit the desired file and go to the tag.
+
+Associated setting variables: |g:netrw_ctags| |g:netrw_ssh_cmd|
 
 
 MARKED FILES: SETTING TARGET DIRECTORY				*netrw-mt* {{{2
@@ -1525,6 +1582,7 @@ your browsing preferences.  (see also: |netrw-settings|)
 				=1: horizontally splitting the window first  
 				=2: vertically   splitting the window first  
 				=3: open file in new tab
+				=4: act like "P" (ie. open previous window)
 
   *g:netrw_browsex_viewer*	specify user's preference for a viewer: >
 					"kfmclient exec"
@@ -1689,7 +1747,14 @@ your browsing preferences.  (see also: |netrw-settings|)
 				  let g:netrw_use_noswf= 0
 				in your .vimrc.
 
-  *g:netrw_timefmt*		specify format string to strftime() (%c)
+  *g:netrw_timefmt*		specify format string to vim's strftime().
+				The default, "%c", is "the preferred date
+				and time representation for the current
+				locale" according to my manpage entry for
+				strftime(); however, not all are satisfied
+				with it.  Some alternatives:
+				 "%a %d %b %Y %T",
+				 " %a %Y-%m-%d  %I-%M-%S %p"
 				 default: "%c"
 
   *g:netrw_winsize*		specify initial size of new o/v windows
@@ -1702,14 +1767,14 @@ your browsing preferences.  (see also: |netrw-settings|)
 
 NETRW BROWSING AND OPTION INCOMPATIBILITIES	*netrw-incompatible* {{{2
 
-Netrw will not work properly with >
-
+Netrw has been designed to handle user options by saving them, setting the
+options to something that's compatible with netrw's needs, and then restoring
+them.  However, the autochdir option: >
 	:set acd
-	:set fo=...ta...
-<
-If either of these options are present when browsing is attempted, netrw
-will change them by using noacd and removing the ta suboptions from the
-|'formatoptions'|.
+is problematical.  Autochdir sets the current directory to that containing the
+file you edit; this apparently also applies to directories.  In other words,
+autochdir sets the current directory to that containing the "file" (even if
+that "file" is itself a directory).
 
 NETRW SETTINGS						*netrw-settings* {{{2
 
@@ -1814,12 +1879,18 @@ REVERSING SORTING ORDER		*netrw-r* *netrw-reverse* {{{2
 One may toggle between normal and reverse sorting order by pressing the
 "r" key.
 
+Related topics:              |g:netrw-s|
+Associated setting variable: |g:netrw_sort_direction|
+
 
 SELECTING SORTING STYLE			*netrw-s* *netrw-sort* {{{2
 
 One may select the sorting style by name, time, or (file) size.  The "s" map
 allows one to circulate amongst the three choices; the directory listing will
 automatically be refreshed to reflect the selected style.
+
+Related topics:               |g:netrw-r| |g:netrw-S|
+Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 
 
 10. Problems and Fixes					*netrw-problems* {{{1
@@ -2081,6 +2152,22 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v115: Oct 04, 2007 * Erik Remmelzwaal pointed out that the use of
+			     shellslash in s:GetTempfile() was incorrect
+	      Oct 11, 2007 * Tracked down and eliminated a bug with editing
+			     remote *.tar.gz and *.tar.bz2 files
+	      Oct 11, 2007 * g:netrw_localmovecmd wasn't being initialized
+			     properly, and g:netrw_localcopycmd was being
+			     overwritten.
+	      Oct 12, 2007 * Placed all :Rexplore and <2-leftmouse> setup
+			     in a new support function (s:SetRexDir()).
+	      Oct 15, 2007 * new: g:netrw_browse_split == 4; means <cr>
+			     based selection will use previous window
+	      Oct 20, 2007 * also checks on |'shellxquote'| to set g:netrw_shq
+	      Oct 24, 2007 * Explore handles path/**/filename
+	      Oct 27, 2007 * sourcing remote files often didn't work with ftp,
+	                     turns out that b:netrw_method was undefined, so
+			     s:SaveBufVars and s:RestoreBufVars() fixed it.
 	v114: Sep 28, 2007 * mT, the map that invokes tags, has been improved
 			     to support use of remote tags files.
 	      Oct 02, 2007 * changed Netrw menu to use more submenus
