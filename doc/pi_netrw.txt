@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Oct 27
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Dec 12
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -233,7 +233,7 @@ CHANGING USERID AND PASSWORD		*netrw-chgup* *netrw-userpass* {{{2
 
 	Attempts to use ftp will prompt you for a user-id and a password.
 	These will be saved in global variables g:netrw_uid and
-	g:netrw_passwd; subsequent uses of ftp will re-use those two items to
+	s:netrw_passwd; subsequent uses of ftp will re-use those two items to
 	simplify the further use of ftp.  However, if you need to use a
 	different user id and/or password, you'll want to call NetUserPass()
 	first.  To work around the need to enter passwords, check if your ftp
@@ -281,7 +281,7 @@ NETRW VARIABLES AND SETTINGS				*netrw-variables* {{{2
 			be available (see |netrw-gx|)
 
  *g:netrw_uid*		(ftp) user-id,      retained on a per-session basis
- *g:netrw_passwd*	(ftp) password,     retained on a per-session basis
+ *s:netrw_passwd*	(ftp) password,     retained on a per-session basis
 
  *g:netrw_preview*	=0 (default) preview window shown in a horizontally
                            split window
@@ -562,18 +562,18 @@ below, a {netfile} is an url to a remote file.
 		 --cmd "source scp://HOSTNAME/.vimrc"
 <								*netrw-uidpass*
 :call NetUserPass()
-		If b:netrw_uid and b:netrw_passwd don't exist,
-		this function query the user for them.
+		If g:netrw_uid and s:netrw_passwd don't exist,
+		this function will query the user for them.
 
 :call NetUserPass("userid")
-		This call will set the b:netrw_uid and, if
+		This call will set the g:netrw_uid and, if
 		the password doesn't exist, will query the user for it.
 
 :call NetUserPass("userid","passwd")
-		This call will set both the b:netrw_uid and b:netrw_passwd.
+		This call will set both the g:netrw_uid and s:netrw_passwd.
 		The user-id and password are used by ftp transfers.  One may
-		effectively remove the user-id and password by using ""
-		strings.
+		effectively remove the user-id and password by using empty
+		strings (ie. "").
 
 :NetrwSettings  This command is described in |netrw-settings| -- used to
                 display netrw settings and change netrw behavior.
@@ -1041,7 +1041,7 @@ This map is the opposite of the "u" map. (see |netrw-u|)  Use the
 q map to list both the bookmarks and history. (see |netrw-q|)
 
 
-NETRW CLEAN					*netrw-clean*
+NETRW CLEAN					*netrw-clean* *:NetrwClean*
 
 With :NetrwClean one may easily remove netrw from one's home directory;
 more precisely, from the first directory on your |'runtimepath'|.
@@ -1322,24 +1322,25 @@ match.
 
 If no files have been marked via |netrw-mf|:
 
-The "a" map allows the user to cycle about these three ways.
+The "a" map allows the user to cycle through the three hiding modes.
 
-The g:netrw_list_hide variable holds a comma delimited list of patterns (ex.
-\.obj) which specify the hiding list. (also see |netrw-ctrl-h|)  To set the
-hiding list, use the <c-h> map.  As an example, to hide files which begin with
-a ".", one may use the <c-h> map to set the hiding list to '^\..*' (or one may
-put let g:netrw_list_hide= '^\..*' in one's <.vimrc>).  One may then use the
-"a" key to show all files, hide matching files, or to show only the matching
-files.
+The |g:netrw_list_hide| variable holds a comma delimited list of patterns
+based on regular expressions (ex. ^.*\.obj$,^\.) which specify the hiding list.
+(also see |netrw-ctrl-h|)  To set the hiding list, use the <c-h> map.  As an
+example, to hide files which begin with a ".", one may use the <c-h> map to
+set the hiding list to '^\..*' (or one may put let g:netrw_list_hide= '^\..*'
+in one's <.vimrc>).  One may then use the "a" key to show all files, hide
+matching files, or to show only the matching files.
 
-	Example: ^.*\.[ch]
+	Example: \.[ch]$
 		This hiding list command will hide/show all *.c and *.h files.
 
-	Example: ^.*\.c,^.*\.h
+	Example: \.c$,\.h$
 		This hiding list command will also hide/show all *.c and *.h
 		files.
 
-Don't forget to use the "a" map to select the normal/hiding/show mode you want!
+Don't forget to use the "a" map to select the mode (normal/hiding/show) you
+want!
 
 If files have been marked using |netrw-mf|, then this command will:
 
@@ -1674,6 +1675,7 @@ your browsing preferences.  (see also: |netrw-settings|)
 				= 2: wide listing (multiple files in columns)
 				= 3: tree style listing
   *g:netrw_list_hide*		comma separated pattern list for hiding files
+				Patterns are regular expressions (see |regexp|)
 				 default: ""
 
   *g:netrw_localcopycmd*	="cp" Linux/Unix/MacOS/Cygwin
@@ -2046,15 +2048,23 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 			8.3 Getting ready for public key authentication
 <
 		How to use a private key with 'pscp': >
+
 			http://www.tartarus.org/~simon/puttydoc/Chapter5.html
 			5.2.4 Using public key authentication with PSCP 
 <
+		(Ben Schmidt) I find the ssh included with cwRsync is
+		brilliant, and install cwRsync or cwRsyncServer on most
+		Windows systems I come across these days. I guess COPSSH,
+		packed by the same person, is probably even better for use as
+		just ssh on Windows, and probably includes sftp, etc. which I
+		suspect the cwRsync doesn't, though it might
+
 		(cec) To make proper use of these suggestions above, you will
 		need to modify the following user-settable variables in your
 		.vimrc:
 
-			|g:netrw_ssh_cmd| |g:netrw_list_cmd|  |g:netrw_mkdir_cmd|
-			|g:netrw_rm_cmd|  |g:netrw_rmdir_cmd| |g:netrw_rmf_cmd|
+		|g:netrw_ssh_cmd| |g:netrw_list_cmd|  |g:netrw_mkdir_cmd|
+		|g:netrw_rm_cmd|  |g:netrw_rmdir_cmd| |g:netrw_rmf_cmd|
 
 		The first one (|g:netrw_ssh_cmd|) is the most important; most
 		of the others will use the string in g:netrw_ssh_cmd by
@@ -2152,6 +2162,16 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v116: Nov 27, 2007 * netrw#LocalBrowseCheck() has &ft=="netrw"
+			     check to prevent doing a directory listing
+			     (was getting unexpected directory refreshes
+			     in the middle of some function calls)
+			   * NetrwOptionRestore moved after e! filename
+			     in order to retain user options for editing
+			     in s:NetrwBrowseChgDir()
+	      Dec 12, 2007 * Bug fix -- netrw does a better job of retaining
+	                     user options when editing files under the aegis
+			     of the browser
 	v115: Oct 04, 2007 * Erik Remmelzwaal pointed out that the use of
 			     shellslash in s:GetTempfile() was incorrect
 	      Oct 11, 2007 * Tracked down and eliminated a bug with editing
@@ -2345,7 +2365,7 @@ which is loaded automatically at startup (assuming :set nocp).
 			     was preventing use of the "x" key with browsing.
 	     Jun 05, 2006  * g:netrw_nogx available to prevent making the gx
 			     map (see |g:netrw_nogx|)
-			   * bugfix, Explore woulnd't change directory
+			   * bugfix, Explore wouldn't change directory
 			     properly (vim ., :Explore subdirname)
 	     Jun 06, 2006  * moved history to 2nd line in Netrw menu
 			   * fixed delete for unix-based systems
