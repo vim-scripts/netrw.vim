@@ -1,7 +1,7 @@
 " netrw.vim: Handles file transfer and remote directory listing across
 "            AUTOLOAD SECTION
-" Date:		Dec 12, 2007
-" Version:	116
+" Date:		Jan 07, 2008
+" Version:	118
 " Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
@@ -29,7 +29,7 @@ if !exists("s:NOTE")
  let s:WARNING = 1
  let s:ERROR   = 2
 endif
-let g:loaded_netrw = "v116"
+let g:loaded_netrw = "v118"
 if v:version < 700
  call netrw#ErrorMsg(s:WARNING,"you need vim version 7.0 or later for version ".g:loaded_netrw." of netrw",1)
  finish
@@ -516,7 +516,7 @@ fun! s:NetrwOptionRestore(vt)
   if exists("{a:vt}netrw_cinokeep") |let &l:cino   = {a:vt}netrw_cinokeep    |unlet {a:vt}netrw_cinokeep |endif
   if exists("{a:vt}netrw_comkeep")  |let &l:com    = {a:vt}netrw_comkeep     |unlet {a:vt}netrw_comkeep  |endif
   if exists("{a:vt}netrw_cpokeep")  |let &l:cpo    = {a:vt}netrw_cpokeep     |unlet {a:vt}netrw_cpokeep  |endif
-  if exists("{a:vt}netrw_dirkeep")  |exe "lcd ".{a:vt}netrw_dirkeep          |unlet {a:vt}netrw_dirkeep  |endif
+  if exists("{a:vt}netrw_dirkeep")  |exe "lcd ".escape({a:vt}netrw_dirkeep,g:netrw_cd_escape)|unlet {a:vt}netrw_dirkeep  |endif
   if exists("{a:vt}netrw_fokeep")   |let &l:fo     = {a:vt}netrw_fokeep      |unlet {a:vt}netrw_fokeep   |endif
   if exists("{a:vt}netrw_gdkeep")   |let &l:gd     = {a:vt}netrw_gdkeep      |unlet {a:vt}netrw_gdkeep   |endif
   if exists("{a:vt}netrw_hidkeep")  |let &l:hidden = {a:vt}netrw_hidkeep     |unlet {a:vt}netrw_hidkeep  |endif
@@ -2809,7 +2809,7 @@ fun! s:NetSortSequence(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFile: This function is invoked by mf, and is used to both {{{2
+" s:NetrwMarkFile: (invoked by mf) This function is used to both {{{2
 "                  mark and unmark files.  If a markfile list exists,
 "                  then the rename and delete functions will use it instead
 "                  of whatever may happen to be under the cursor at that
@@ -2873,7 +2873,7 @@ fun! s:NetrwMarkFile(islocal,fname)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileCompress: This function, invoked by mz, is used to {{{2
+" s:NetrwMarkFileCompress: (invoked by mz) This function is used to {{{2
 "                          compress/decompress files using the programs
 "                          in g:netrw_compress and g:netrw_uncompress,
 "                          using g:netrw_compress_suffix to know which to
@@ -2927,7 +2927,7 @@ fun! s:NetrwMarkFileCompress(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileCopy: copy marked files to target {{{2
+" s:NetrwMarkFileCopy: (invoked by mc) copy marked files to target {{{2
 "                      If no marked files, then set up directory as the
 "                      target.  Currently does not support copying entire
 "                      directories.
@@ -2939,11 +2939,15 @@ fun! s:NetrwMarkFileCopy(islocal)
    exe "cd ".b:netrw_curdir
   endif
 
+  " s:netrwmarkfilelist: the List of marked files
   if exists("s:netrwmarkfilelist")
 "   call Decho("s:netrwmarkfilelist<".string(s:netrwmarkfilelist).">")
 "   call Decho("s:netrwmarkfilemtch<".string(s:netrwmarkfilemtch).">")
    let svpos= netrw#NetrwSavePosn()
 
+   " s:netrwmftgt : name of directory to copy files to
+   " s:netrwmfloc : =0 target directory is remote
+   "                =1 target directory is local
    if exists("s:netrwmftgt") && exists("s:netrwmfloc")
 "    call Decho("s:netrwmftgt<".s:netrwmftgt.">")
 "    call Decho("s:netrwmfloc=".s:netrwmfloc)
@@ -2998,7 +3002,7 @@ fun! s:NetrwMarkFileCopy(islocal)
      2match none
     endif
    else
-    call netrw#ErrorMsg(s:ERROR,"missing a markfile copy target!",56)
+    call netrw#ErrorMsg(s:ERROR,"missing a markfile copy target! (see help for netrw-mt)",56)
    endif
 
    " refresh the listing
@@ -3013,7 +3017,7 @@ fun! s:NetrwMarkFileCopy(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileDiff: This function, invoked by md, is used to {{{2
+" s:NetrwMarkFileDiff: (invoked by md) This function is used to {{{2
 "                      invoke vim's diff mode on the marked files.
 "                      Either two or three files can be so handled.
 fun! s:NetrwMarkFileDiff(islocal)
@@ -3052,7 +3056,7 @@ fun! s:NetrwMarkFileDiff(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileEdit: put marked files on arg list and start editing them {{{2
+" s:NetrwMarkFileEdit: (invoked by me) put marked files on arg list and start editing them {{{2
 fun! s:NetrwMarkFileEdit(islocal)
 "  call Dfunc("s:NetrwMarkFileEdit(islocal=".a:islocal.")")
   if a:islocal && exists("b:netrw_curdir")
@@ -3074,7 +3078,7 @@ fun! s:NetrwMarkFileEdit(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileExe: execute arbitrary command on marked files, one at a time {{{2
+" s:NetrwMarkFileExe: (invoked by mx) execute arbitrary command on marked files, one at a time {{{2
 fun! s:NetrwMarkFileExe(islocal)
 "  call Dfunc("s:NetrwMarkFileExe(islocal=".a:islocal.")")
   let svpos= netrw#NetrwSavePosn()
@@ -3126,7 +3130,7 @@ fun! s:NetrwMarkFileExe(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileMove: execute arbitrary command on marked files, one at a time {{{2
+" s:NetrwMarkFileMove: (invoked by mm) execute arbitrary command on marked files, one at a time {{{2
 fun! s:NetrwMarkFileMove(islocal)
 "  call Dfunc("s:NetrwMarkFileMove(islocal=".a:islocal.")")
   if a:islocal && exists("b:netrw_curdir")
@@ -3176,7 +3180,7 @@ fun! s:NetrwMarkFileMove(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFilePrint: This function, invoked by mp, prints marked files {{{2
+" s:NetrwMarkFilePrint: (invoked by mp) This function prints marked files {{{2
 "                       using the hardcopy command
 fun! s:NetrwMarkFilePrint(islocal)
 "  call Dfunc("s:NetrwMarkFilePrint(islocal=".a:islocal.")")
@@ -3202,7 +3206,7 @@ endfun
 " ---------------------------------------------------------------------
 
 " ===========================================
-" s:NetrwMarkFileRegexp: This function, invoked by mr, is used to mark {{{2
+" s:NetrwMarkFileRegexp: (invoked by mr) This function is used to mark {{{2
 "                        files when given a regexp (for which a prompt is
 "                        issued).
 fun! s:NetrwMarkFileRegexp(islocal)
@@ -3275,7 +3279,7 @@ fun! s:NetrwMarkFileRegexp(islocal)
 endfun
 
 " ---------------------------------------------------------------------
-" s:NetrwMarkFileTag: This function, invoked by mT, applies {{{2
+" s:NetrwMarkFileTag: (invoked by mt) This function applies {{{2
 "                     g:netrw_ctags to marked files
 fun! s:NetrwMarkFileTag(islocal)
 "  call Dfunc("s:NetrwMarkFileTag(islocal=".a:islocal.")")
@@ -3322,7 +3326,11 @@ fun! s:NetrwMarkFileTag(islocal)
 endfun
 
 " ---------------------------------------------------------------------
- " s:NetrwMarkFileTgt: {{{2
+" s:NetrwMarkFileTgt:  (invoked by mt) This function sets up a marked file target {{{2
+"   Sets up two variables, 
+"     s:netrwmftgt : holds the target directory
+"     s:netrwmfloc : 0=target directory is remote
+"                    1=target directory is local
 fun! s:NetrwMarkFileTgt(islocal)
 "  call Dfunc("s:NetrwMarkFileTgt(islocal=".a:islocal.")")
   let svpos= netrw#NetrwSavePosn()
@@ -4909,6 +4917,9 @@ endfun
 fun! s:NetrwPrevWinOpen(islocal)
 "  call Dfunc("NetrwPrevWinOpen(islocal=".a:islocal.")")
 
+  " grab a copy of the b:netrw_curdir to pass it along to newly split windows
+  let curdir    = b:netrw_curdir
+
   " get last window number and the word currently under the cursor
   let lastwinnr = winnr("$")
   let curword   = s:NetrwGetWord()
@@ -4986,6 +4997,8 @@ fun! s:NetrwPrevWinOpen(islocal)
    endif
   endif
 
+  " restore b:netrw_curdir (window split/enew may have lost it)
+  let b:netrw_curdir= curdir
   if a:islocal < 2
    if a:islocal
     call netrw#LocalBrowseCheck(s:NetrwBrowseChgDir(a:islocal,curword))
@@ -5088,12 +5101,17 @@ fun! netrw#LocalBrowseCheck(dirname)
   " The &ft == "netrw" test was installed because the BufEnter event
   " would hit when re-entering netrw windows, creating unexpected
   " refreshes (and would do so in the middle of NetrwSaveOptions(), too)
-"  call Dfunc("LocalBrowseCheck(dirname<".a:dirname.">")
-"  call Decho("isdir=".isdirectory(a:dirname)." ft=".&ft." b:netrw_curdir<".(exists("b:netrw_curdir")? b:netrw_curdir : " doesn't exist")."> dirname<".a:dirname.">")
-  if isdirectory(a:dirname) && (&ft != "netrw" || (exists("b:netrw_curdir") && b:netrw_curdir != a:dirname))
-   silent! call s:NetrwBrowse(1,a:dirname)
+"  call Dfunc("netrw#LocalBrowseCheck(dirname<".a:dirname.">")
+"  call Decho("isdir=".isdirectory(a:dirname))
+  if isdirectory(a:dirname)
+"   call Decho(" ft=".&ft." b:netrw_curdir<".(exists("b:netrw_curdir")? b:netrw_curdir : " doesn't exist")."> dirname<".a:dirname.">"." line($)=".line("$"))
+   if &ft != "netrw" || (exists("b:netrw_curdir") && b:netrw_curdir != a:dirname)
+    silent! call s:NetrwBrowse(1,a:dirname)
+   elseif &ft == "netrw" && line("$") == 1
+    silent! call s:NetrwBrowse(1,a:dirname)
+   endif
   endif
-"  call Dret("LocalBrowseCheck")
+"  call Dret("netrw#LocalBrowseCheck")
   " not a directory, ignore it
 endfun
 
@@ -6016,6 +6034,8 @@ fun! s:ComposePath(base,subdir)
    else
     let ret = a:base . a:subdir
    endif
+  elseif a:subdir =~ '^\a:[/\\][^/\\]' && (has("win32") || has("win95") || has("win64") || has("win16"))
+   let ret= a:subdir
   elseif a:base =~ '^\a\+://'
    let urlbase = substitute(a:base,'^\(\a\+://.\{-}/\)\(.*\)$','\1','')
    let curpath = substitute(a:base,'^\(\a\+://.\{-}/\)\(.*\)$','\2','')

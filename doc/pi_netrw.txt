@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2007 Dec 12
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2008 Jan 07
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -1198,6 +1198,9 @@ DIRECTORY EXPLORATION COMMANDS  {{{2
 By default, these commands use the current file's directory.  However, one
 may explicitly provide a directory (path) to use.
 
+The |g:netrw_winsize| variable also is used, if specified by the user, to
+size Hexplore and Vexplore windows.
+
 :Rexplore  This command is a little different from the others.  When one
            edits a file, for example by pressing <cr> when atop a file in
 	   a netrw browser window, :Rexplore will return the display to
@@ -1676,6 +1679,7 @@ your browsing preferences.  (see also: |netrw-settings|)
 				= 3: tree style listing
   *g:netrw_list_hide*		comma separated pattern list for hiding files
 				Patterns are regular expressions (see |regexp|)
+				Example: let g:netrw_list_hide= '.*\.swp$'
 				 default: ""
 
   *g:netrw_localcopycmd*	="cp" Linux/Unix/MacOS/Cygwin
@@ -1759,7 +1763,9 @@ your browsing preferences.  (see also: |netrw-settings|)
 				 " %a %Y-%m-%d  %I-%M-%S %p"
 				 default: "%c"
 
-  *g:netrw_winsize*		specify initial size of new o/v windows
+  *g:netrw_winsize*		specify initial size of new windows made with
+				"o" (see |netrw-o|), "v" (see |netrw-v|),
+				|:Hexplore| or |:Vexplore|.
 				 default: ""
 
   *g:NetrwTopLvlMenu*		This variable specifies the top level
@@ -2162,6 +2168,16 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v118: Jan 02, 2008 * Fixed a problem with Windows,
+			     :Explore c:/path/ would not work,
+			     but :Explore c:/path would.
+			   * (Gary Johnson) fixed a bug in
+			     s:NetrwOptionRestore() - lcd's argument
+			     wasn't being properly escaped so it
+			     wouldn't handle spaces in directory
+			     names.
+	v117: Jan 02, 2008 * Fixed a problem with P; had to include
+			     a b:netrw_curdir bypass (Bram Moolenaar)
 	v116: Nov 27, 2007 * netrw#LocalBrowseCheck() has &ft=="netrw"
 			     check to prevent doing a directory listing
 			     (was getting unexpected directory refreshes
