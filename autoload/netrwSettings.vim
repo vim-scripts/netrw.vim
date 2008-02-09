@@ -126,6 +126,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_mkdir_cmd         = '.g:netrw_mkdir_cmd
   put = 'let g:netrw_preview           = '.g:netrw_preview
   put = 'let g:netrw_rename_cmd        = '.g:netrw_rename_cmd
+  put = 'let g:netrw_retmap            = '.g:netrw_retmap
   put = 'let g:netrw_rm_cmd            = '.g:netrw_rm_cmd
   put = 'let g:netrw_rmdir_cmd         = '.g:netrw_rmdir_cmd
   put = 'let g:netrw_rmf_cmd           = '.g:netrw_rmf_cmd
@@ -133,6 +134,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_sort_by           = '.g:netrw_sort_by
   put = 'let g:netrw_sort_direction    = '.g:netrw_sort_direction
   put = 'let g:netrw_sort_sequence     = '.g:netrw_sort_sequence
+  put = 'let g:netrw_special_syntax    = '.g:netrw_special_syntax
   put = 'let g:netrw_ssh_browse_reject = '.g:netrw_ssh_browse_reject
   put = 'let g:netrw_scpport           = '.g:netrw_scpport
   put = 'let g:netrw_sshport           = '.g:netrw_sshport

@@ -1,7 +1,7 @@
 " Language   : Netrw Remote-Directory Listing Syntax
 " Maintainer : Charles E. Campbell, Jr.
-" Last change: Aug 08, 2007
-" Version    : 10
+" Last change: Feb 06, 2008
+" Version    : 12
 " ---------------------------------------------------------------------
 
 " Syntax Clearing: {{{1
@@ -13,23 +13,24 @@ endif
 
 " ---------------------------------------------------------------------
 " Directory List Syntax Highlighting: {{{1
-syn cluster NetrwGroup contains=netrwHide,netrwSortBy,netrwSortSeq,netrwQuickHelp,netrwVersion,netrwCopyTgt
+syn cluster NetrwGroup		contains=netrwHide,netrwSortBy,netrwSortSeq,netrwQuickHelp,netrwVersion,netrwCopyTgt
+syn cluster NetrwTreeGroup	contains=netrwDir,netrwSymLink,netrwExe
 
-syn match  netrwSpecial		"\%(\S\+ \)*\S\+[*|=]\ze\%(\s\{2,}\|$\)" contains=netrwClassify
-syn match  netrwDir		"\.\{1,2}/"			contains=netrwClassify
-syn match  netrwDir		"\%(\S\+ \)*\S\+/"		contains=netrwClassify
-syn match  netrwDir		"^\S*/"				contains=netrwClassify
-syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"	contains=netrwDateSep skipwhite nextgroup=netrwTime
-syn match  netrwSymLink		"\%(\S\+ \)*\S\+@\ze\%(\s\{2,}\|$\)"  contains=netrwClassify
-syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" contains=netrwClassify,netrwTreeIgnore
-syn match  netrwTreeIgnore contained "^\%(| \)*"
+syn match  netrwSpecial		"\%(\S\+ \)*\S\+[*|=]\ze\%(\s\{2,}\|$\)"		contains=netrwClassify
+syn match  netrwDir		"\.\{1,2}/"						contains=netrwClassify
+syn match  netrwDir		"\%(\S\+ \)*\S\+/"					contains=netrwClassify
+syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"			contains=netrwDateSep skipwhite nextgroup=netrwTime
+syn match  netrwSymLink		"\%(\S\+ \)*\S\+@\ze\%(\s\{2,}\|$\)"  			contains=netrwClassify
+syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" 			contains=netrwClassify
+syn match  netrwTreeBar		"^\%(| \)*"						contains=netrwTreeBarSpace	nextgroup=@netrwTreeGroup
+syn match  netrwTreeBarSpace	" "				contained
 
 syn match  netrwClassify	"[*=|@/]\ze\%(\s\{2,}\|$\)"	contained
 syn match  netrwDateSep		"/"				contained
-syn match  netrwTime		"\d\{1,2}:\d\{2}:\d\{2}"	contained contains=netrwTimeSep
+syn match  netrwTime		"\d\{1,2}:\d\{2}:\d\{2}"	contained		contains=netrwTimeSep
 syn match  netrwTimeSep		":"
 
-syn match  netrwComment		'".*\%(\t\|$\)'			contains=@NetrwGroup
+syn match  netrwComment		'".*\%(\t\|$\)'						contains=@NetrwGroup
 syn match  netrwHide		'^"\s*\(Hid\|Show\)ing:'	skipwhite nextgroup=netrwHidePat
 syn match  netrwSlash		"/"				contained
 syn match  netrwHidePat		"[^,]\+"			contained skipwhite nextgroup=netrwHideSep
@@ -37,13 +38,28 @@ syn match  netrwHideSep		","				contained transparent skipwhite nextgroup=netrwH
 syn match  netrwSortBy		"Sorted by"			contained transparent skipwhite nextgroup=netrwList
 syn match  netrwSortSeq		"Sort sequence:"		contained transparent skipwhite nextgroup=netrwList
 syn match  netrwCopyTgt		"Copy/Move Tgt:"		contained transparent skipwhite nextgroup=netrwList
-syn match  netrwList		".*$"				contained contains=netrwComma
+syn match  netrwList		".*$"				contained		contains=netrwComma
 syn match  netrwComma		","				contained
-syn region netrwQuickHelp	matchgroup=Comment start="Quick Help:\s\+" end="$" contains=netrwHelpCmd keepend contained
+syn region netrwQuickHelp	matchgroup=Comment start="Quick Help:\s\+" end="$"	contains=netrwHelpCmd keepend contained
 syn match  netrwHelpCmd		"\S\ze:"			contained skipwhite nextgroup=netrwCmdSep
 syn match  netrwCmdSep		":"				contained nextgroup=netrwCmdNote
 syn match  netrwCmdNote		".\{-}\ze  "			contained
 syn match  netrwVersion		"(netrw.*)"			contained
+
+" -----------------------------
+" Special filetype highlighting {{{1
+" -----------------------------
+if exists("netrw_special_syntax") && netrw_special_syntax
+ syn match netrwCompress	"\(\S\+ \)*\S\+\.\%(gz\|bz2\|Z\|zip\)\>"
+ syn match netrwData		"\(\S\+ \)*\S\+\.dat\>"
+ syn match netrwLib		"\(\S\+ \)*\S*\.\%(a\|so\|lib\|dll\)\>"
+ syn match netrwObj		"\(\S\+ \)*\S*\.\%(o\|obj\)\>"
+ syn match netrwTilde		"\(\S\+ \)*\S\+\~\>"
+ syn match netrwTmp		"\<tmp\(\S\+ \)*\S\+\>\|\(\S\+ \)*\S*tmp\>"
+ syn match netrwTags    	"\<tags\>"
+ syn match netrwTags		"\<\(ANmenu\|ANtags\)\>"
+ syn match netrwBak		"\(\S\+ \)*\S\+\.bak\>"
+endif
 
 " ---------------------------------------------------------------------
 " Highlighting Links: {{{1
@@ -57,14 +73,25 @@ if !exists("did_drchip_netrwlist_syntax")
  hi link netrwHidePat	Statement
  hi link netrwList	Statement
  hi link netrwVersion	Identifier
- hi link netrwSymLink	Special
+ hi link netrwSymLink	Question
  hi link netrwExe	PreProc
  hi link netrwDateSep	Delimiter
 
+ hi link netrwTreeBar	Special
  hi link netrwTimeSep	netrwDateSep
  hi link netrwComma	netrwComment
  hi link netrwHide	netrwComment
  hi link netrwMarkFile	Identifier
+
+ " special syntax highlighting (see :he g:netrw_special_syntax)
+ hi link netrwBak	NonText
+ hi link netrwCompress	Folded
+ hi link netrwData	Folded
+ hi link netrwLib	Folded
+ hi link netrwObj	Folded
+ hi link netrwTilde	Folded
+ hi link netrwTmp	Folded
+ hi link netrwTags	Folded
 endif
 
 " Current Syntax: {{{1

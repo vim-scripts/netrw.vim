@@ -22,7 +22,7 @@
 if &cp || exists("g:loaded_netrwPlugin")
  finish
 endif
-let g:loaded_netrwPlugin = "v118"
+let g:loaded_netrwPlugin = "v120"
 let s:keepcpo            = &cpo
 if v:version < 700
  echohl WarningMsg | echo "***netrw*** you need vim version 7.0 for this version of netrw" | echohl None
