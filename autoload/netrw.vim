@@ -1,7 +1,7 @@
 " netrw.vim: Handles file transfer and remote directory listing across
 "            AUTOLOAD SECTION
-" Date:		Feb 09, 2008
-" Version:	120
+" Date:		Feb 12, 2008
+" Version:	121
 " Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
@@ -27,7 +27,7 @@ if !exists("s:NOTE")
  let s:WARNING = 1
  let s:ERROR   = 2
 endif
-let g:loaded_netrw = "v120"
+let g:loaded_netrw = "v121"
 if v:version < 700
  call netrw#ErrorMsg(s:WARNING,"you need vim version 7.0 or later for version ".g:loaded_netrw." of netrw",1)
  finish
@@ -1330,8 +1330,8 @@ fun! s:NetrwGetFile(readcmd, tfile, method)
    else
     let tfile= a:tfile
    endif
-"   call Decho("keepalt exe file ".tfile)
-   keepalt exe "silent! keepalt file ".tfile
+"   "   call Decho("exe silent! keepalt file ".tfile)
+   exe "silent! keepalt file ".tfile
 
    " edit temporary file (ie. read the temporary file in)
    if     rfile =~ '\.zip$'
@@ -1352,6 +1352,7 @@ fun! s:NetrwGetFile(readcmd, tfile, method)
    endif
 
    " rename buffer back to remote filename
+"   call Decho("exe silent! keepalt file ".escape(rfile,' '))
    exe "silent! keepalt file ".escape(rfile,' ')
    filetype detect
 "   call Dredir("renamed buffer back to remote filename<".rfile."> : expand(%)<".expand("%").">","ls!")
@@ -2245,7 +2246,7 @@ fun! s:NetrwGetBuffer(islocal,dirname)
   mark '
   if bufnum < 0 || !bufexists(bufnum)
    call s:NetrwEnew(dirname)
-"   call Decho("  got enew buffer#".bufnr("%"))
+"   call Decho("  got enew buffer#".bufnr("%")." (altbuf<".expand("#").">)")
    " name the buffer
    if exists("w:netrw_liststyle") && w:netrw_liststyle == s:TREELIST
     " Got enew buffer; transform into a NetrwTreeListing
@@ -2264,10 +2265,10 @@ fun! s:NetrwGetBuffer(islocal,dirname)
     nnoremap <silent> <buffer> ]]       :silent call <SID>TreeListMove(']')<cr>
 "    call Decho("  tree listing#".s:netrw_treelistnum." bufnr=".w:netrw_treebufnr)
    else
-"    call Decho('  exe silent! keepalt file '.escape(dirname,g:netrw_cd_escape))
 "    let v:errmsg= "" " Decho
     let escdirname= escape(dirname,g:netrw_cd_escape)
 "    call Decho("errmsg<".v:errmsg."> bufnr(".escdirname.")=".bufnr(escdirname)."<".bufname(bufnr(escdirname)).">")
+"    call Decho('  exe silent! keepalt file '.escdirname)
     exe 'silent! keepalt file '.escdirname
    endif
 "   call Decho("  named enew buffer#".bufnr("%")."<".bufname("%").">")
@@ -2309,7 +2310,7 @@ fun! s:NetrwGetBuffer(islocal,dirname)
 "  call Decho("--do netrw settings: make this buffer not-a-file, modifiable, not line-numbered, etc--")
   let fname= expand("%")
   call s:NetrwListSettings(a:islocal)
-  exe "file ".escape(fname,' ')
+  exe "keepalt file ".escape(fname,' ')
 
   " delete all lines from buffer {{{3
 "  call Decho("--delete all lines from buffer--")
@@ -2436,7 +2437,7 @@ fun! s:NetrwListSettings(islocal)
   let fname= bufname("%")
   setlocal bt=nofile nobl ma nonu nowrap noro
 "  call Decho("setlocal bt=nofile nobl ma nonu nowrap noro")
-  exe "file ".escape(fname,' ')
+  exe "keepalt file ".escape(fname,' ')
   if g:netrw_use_noswf
    setlocal noswf
   endif
@@ -2578,7 +2579,6 @@ fun! s:NetrwBrowseChgDir(islocal,newdir,...)
 
   call s:NetrwOptionSave("s:")
   call s:NetrwSafeOptions()
-  call netrw#NetrwSavePosn()
   let nbcd_curpos = netrw#NetrwSavePosn()
   let dirname     = substitute(b:netrw_curdir,'\\','/','ge')
   let newdir      = a:newdir
@@ -2992,7 +2992,7 @@ fun! netrw#Explore(indx,dosplit,style,...)
   norm! 0
 
   if a:0 > 0
-"   call Decho("a:1<".a:1.">")
+"   call Decho("case [a:0=".a:0."]>0: a:1<".a:1.">")
    if a:1 =~ '^\~' && (has("unix") || (exists("g:netrw_cygwin") && g:netrw_cygwin))
     let dirname= substitute(a:1,'\~',expand("$HOME"),'')
 "    call Decho("using dirname<".dirname.">  (case: ~ && unix||cygwin)")
@@ -3037,10 +3037,11 @@ fun! netrw#Explore(indx,dosplit,style,...)
     let b:netrw_curdir= getcwd().'/'.prefixdir
    endif
    let dirname= substitute(dirname,'^.\{-}\(\*\*/.*\)$','\1','')
+   let starpat= 4;
 "   call Decho("pwd<".getcwd()."> dirname<".dirname.">")
-  endif
+"   call Decho("case Explore ../**/../filepat (starpat=".starpat.")")
 
-  if dirname =~ '^\*//'
+  elseif dirname =~ '^\*//'
    " starpat=1: Explore *//pattern   (current directory only search for files containing pattern)
 "   call Decho("case Explore *//pattern")
    let pattern= substitute(dirname,'^\*//\(.*\)$','\1','')
@@ -3064,20 +3065,25 @@ fun! netrw#Explore(indx,dosplit,style,...)
    " starpat=4: Explore **/filepat  (recursive descent search for filenames matching filepat)
    let starpat= 4
 "   call Decho("case Explore **/filepat (starpat=".starpat.")")
+  else
+   let starpat= 0
   endif
 
-  if dirname == "" && a:indx >= 0
-   " Explore Hexplore Vexplore Sexplore
-"   call Decho("case Explore Hexplore Vexplore Sexplore")
-   let newdir= substitute(expand("%:p"),'^\(.*[/\\]\)[^/\\]*$','\1','e')
-   if newdir =~ '^scp:' || newdir =~ '^ftp:'
-"    call Decho("calling NetrwBrowse(0,newdir<".newdir.">)")
-    call s:NetrwBrowse(0,newdir)
-   else
-    if newdir == ""|let newdir= getcwd()|endif
-"    call Decho("calling LocalBrowseCheck(newdir<".newdir.">)")
-    call netrw#LocalBrowseCheck(newdir)
+  if starpat == 0 && a:indx >= 0
+   " [Explore Hexplore Vexplore Sexplore] [dirname]
+"   call Decho("case dirname<".dirname."> a:indx=".a:indx.": Explore Hexplore Vexplore Sexplore")
+   if dirname == ""
+    let dirname= substitute(expand("%:p"),'^\(.*[/\\]\)[^/\\]*$','\1','e')
    endif
+   if dirname =~ '^scp:' || dirname =~ '^ftp:'
+"    call Decho("calling NetrwBrowse(0,dirname<".dirname.">)")
+    call s:NetrwBrowse(0,dirname)
+   else
+    if dirname == ""|let dirname= getcwd()|endif
+"    call Decho("calling LocalBrowseCheck(dirname<".dirname.">)")
+    call netrw#LocalBrowseCheck(dirname)
+   endif
+
 "   call Decho("curfile<".curfile.">")
    if has("win32") || has("win95") || has("win64") || has("win16")
     call search('\<'.substitute(curfile,'^.*[/\\]','','e').'\>','cW')
@@ -3164,7 +3170,7 @@ fun! netrw#Explore(indx,dosplit,style,...)
 "     call Decho("starpat=".starpat.": b:netrw_curdir<".b:netrw_curdir.">")
 
      " switch on starpat to build the w:netrw_explore_list of files
-     if     starpat == 1
+     if starpat == 1
       " starpat=1: Explore *//pattern  (current directory only search for files containing pattern)
 "      call Decho("starpat=".starpat.": build *//pattern list")
       exe "vimgrep /".pattern."/gj ".b:netrw_curdir."/*"
@@ -3311,8 +3317,8 @@ fun! netrw#Explore(indx,dosplit,style,...)
    echo "<s-up>==Pexplore  <s-down>==Nexplore"
   else
    2match none
-   unlet s:explore_match
-   unlet s:explore_prvdir
+   if exists("s:explore_match")  | unlet s:explore_match  | endif
+   if exists("s:explore_prvdir") | unlet s:explore_prvdir | endif
    echo " "
 "   call Decho("cleared explore match list")
   endif
@@ -6653,13 +6659,8 @@ fun! s:NetrwEnew(curdir)
   if exists("b:netrw_prvdir")         |let netrw_prvdir          = b:netrw_prvdir         |endif
 
   call s:NetrwOptionRestore("w:")
-  if getline(2) =~ '^" Netrw Directory Listing'
-"   call Decho("generate a buffer with keepjumps keepalt enew! (1)")
-   keepjumps keepalt enew!
-  else
-"   call Decho("generate a buffer with keepjumps enew! (2)")
-   keepjumps enew!
-  endif
+"  call Decho("generate a buffer with keepjumps keepalt enew!")
+  keepjumps keepalt enew!
   call s:NetrwOptionSave("w:")
 
   " copy function-local-variables to buffer variable equivalents
@@ -6687,11 +6688,11 @@ fun! s:NetrwEnew(curdir)
     nno <silent> <buffer> [	:silent call <SID>TreeListMove('[')<cr>
     nno <silent> <buffer> ]	:silent call <SID>TreeListMove(']')<cr>
    else
-    exe "silent! file ".b:netrw_curdir
+    exe "silent! keepalt file ".b:netrw_curdir
    endif
   endif
 
-"  call Dret("s:NetrwEnew : buf#".bufnr("%")."<".bufname("%").">")
+"  call Dret("s:NetrwEnew : buf#".bufnr("%")."<".bufname("%")."> expand(%)<".expand("%")."> expand(#)<".expand("#").">")
 endfun
 
 " ------------------------------------------------------------------------
@@ -6737,7 +6738,7 @@ fun! netrw#NetrwRestorePosn(...)
   if v:shell_error == 0
    " as suggested by Bram M: redraw on no error
    " allows protocol error messages to remain visible
-   redraw!
+"   redraw!
   endif
 
   " restore top-of-screen line

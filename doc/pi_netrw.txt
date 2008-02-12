@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2008 Feb 09
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2008 Feb 12
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -2231,6 +2231,10 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v121: Feb 11, 2008 * Bram M reported that :e file ... :e . would not
+			     retain the alternate file.  Fixed -- I hope!
+			   * bugfix -- apparently v120 broke an explicit
+			     :Explore dirname
 	v120: Jan 21, 2008 * |netrw-mt| changed to allow for target selection
 	                     based on whether or not word under cursor is a
 			     directory or file, or if cursor is in banner
