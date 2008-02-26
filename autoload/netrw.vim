@@ -1,7 +1,7 @@
 " netrw.vim: Handles file transfer and remote directory listing across
 "            AUTOLOAD SECTION
-" Date:		Feb 12, 2008
-" Version:	121
+" Date:		Feb 26, 2008
+" Version:	122
 " Maintainer:	Charles E Campbell, Jr <NdrOchip@ScampbellPfamily.AbizM-NOSPAM>
 " GetLatestVimScripts: 1075 1 :AutoInstall: netrw.vim
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
@@ -13,7 +13,7 @@
 "               expressed or implied. By using this plugin, you agree that
 "               in no event will the copyright holder be liable for any damages
 "               resulting from the use of this software.
-"redraw!|call inputsave()|call input("Press <cr> to continue")|call inputrestore()
+"redraw!|call DechoSep()|call inputsave()|call input("Press <cr> to continue")|call inputrestore()
 "
 "  But be doers of the Word, and not only hearers, deluding your own selves {{{1
 "  (James 1:22 RSV)
@@ -27,7 +27,7 @@ if !exists("s:NOTE")
  let s:WARNING = 1
  let s:ERROR   = 2
 endif
-let g:loaded_netrw = "v121"
+let g:loaded_netrw = "v122"
 if v:version < 700
  call netrw#ErrorMsg(s:WARNING,"you need vim version 7.0 or later for version ".g:loaded_netrw." of netrw",1)
  finish
@@ -320,7 +320,7 @@ if !exists("g:netrw_sort_direction")
  let g:netrw_sort_direction= "normal"
 endif
 if !exists("g:netrw_sort_sequence")
- let g:netrw_sort_sequence= '[\/]$,\.h$,\.c$,\.cpp$,\.[a-np-z]$,*,\.info$,\.swp$,\.o$\.obj$,\.bak$'
+ let g:netrw_sort_sequence= '[\/]$,\.h$,\.c$,\.cpp$,*,\.o$,\.obj$,\.info$,\.swp$,\.bak$,\~$'
 endif
 if !exists("g:netrw_special_syntax")
  let g:netrw_special_syntax= 0
@@ -1394,7 +1394,7 @@ fun! s:NetrwGetFile(readcmd, tfile, method)
 "  call Decho("readcmd<".a:readcmd."> cmdarg<".v:cmdarg."> tfile<".a:tfile."> readable=".s:FileReadable(a:tfile))
 
  " make sure file is being displayed
-  redraw!
+"  redraw!
 
 "  call Decho("ro=".&ro." ma=".&ma." mod=".&mod." wrap=".&wrap)
 "  call Dret("NetrwGetFile")
@@ -1841,7 +1841,7 @@ fun! s:NetrwBookmarkDir(chg,curdir)
    endif
 
   elseif a:chg == 2
-   redraw!
+"   redraw!
    let didwork= 0
    " list user's bookmarks
 "   call Decho("(user: <q>) list user's bookmarks")
@@ -2159,7 +2159,7 @@ fun! s:NetrwFileInfo(islocal,fname)
 "    call Decho(fname.":  ".sz."  ".strftime(g:netrw_timefmt,getftime(fname)))
    endif
   else
-   echo "sorry, \"qi\" not supported yet for remote files"
+   echo "sorry, \"qf\" not supported yet for remote files"
   endif
 "  call Dret("s:NetrwFileInfo")
 endfun
@@ -2823,12 +2823,12 @@ fun! netrw#NetrwBrowseX(fname,remote)
 
   if a:remote == 1
    " create a local copy
-   let fname= fnamemodify(tempname(),":t:r").".".exten
+   let fname= fnamemodify(tempname(),":r").".".exten
 "   call Decho("a:remote=".a:remote.": create a local copy of <".a:fname."> as <".fname.">")
    exe "silent keepjumps bot 1new ".a:fname
    setlocal bh=delete
-"   call Decho("exe w! ".fname)
-   exe "w! ".fname
+"   call Decho("read <".fname.">, now writing: exe w! ".fname)
+   exe "silent! w! ".fname
    q
   endif
 "  call Decho("exten<".exten."> "."netrwFileHandlers#NFH_".exten."():exists=".exists("*netrwFileHandlers#NFH_".exten))
@@ -2870,7 +2870,7 @@ fun! netrw#NetrwBrowseX(fname,remote)
 
   " execute the file handler
   if exists("g:netrw_browsex_viewer") && g:netrw_browsex_viewer == '-'
-"  call Decho("g:netrw_browsex_viewer<".g:netrw_browsex_viewer.">")
+"   call Decho("g:netrw_browsex_viewer<".g:netrw_browsex_viewer.">")
    let ret= netrwFileHandlers#Invoke(exten,fname)
 
   elseif exists("g:netrw_browsex_viewer") && executable(viewer)
@@ -2910,15 +2910,17 @@ fun! netrw#NetrwBrowseX(fname,remote)
    let ret= netrwFileHandlers#Invoke(exten,fname)
   endif
 
-  redraw!
+"  redraw!
 
   " cleanup: remove temporary file,
   "          delete current buffer if success with handler,
   "          return to prior buffer (directory listing)
-  if a:remote == 1 && fname != a:fname
+  "          Feb 12, 2008: had to de-activiate removal of
+  "          temporary file because it wasn't getting seen.
+"  if a:remote == 1 && fname != a:fname
 "   call Decho("deleting temporary file<".fname.">")
-   call s:System("delete",fname)
-  endif
+"   call s:System("delete",fname)
+"  endif
 
   if a:remote == 1
    setlocal bh=delete bt=nofile
@@ -2926,7 +2928,7 @@ fun! netrw#NetrwBrowseX(fname,remote)
     setlocal noswf
    endif
    exe "norm! \<c-o>"
-   redraw!
+"   redraw!
   endif
 
 "  call Dret("NetrwBrowseX")
@@ -3020,7 +3022,7 @@ fun! netrw#Explore(indx,dosplit,style,...)
    if exists("w:netrw_explore_listlen")|unlet w:netrw_explore_listlen|endif
    if exists("w:netrw_explore_list")   |unlet w:netrw_explore_list   |endif
    if exists("w:netrw_explore_bufnr")  |unlet w:netrw_explore_bufnr  |endif
-   redraw!
+"   redraw!
    echo " "
    echo " "
 "   call Dret("netrw#Explore : cleared list")
@@ -3569,7 +3571,7 @@ fun! s:NetrwMakeDir(usrhost)
    elseif !exists("g:netrw_quiet")
     call netrw#ErrorMsg(s:ERROR,"unable to make directory<".newdirname.">",26)
    endif
-   redraw!
+"   redraw!
 
   else
    " Remote mkdir:
@@ -3585,7 +3587,7 @@ fun! s:NetrwMakeDir(usrhost)
    elseif !exists("g:netrw_quiet")
     call netrw#ErrorMsg(s:ERROR,"unable to make directory<".newdirname.">",27)
    endif
-   redraw!
+"   redraw!
   endif
 
 "  call Dret("NetrwMakeDir")
@@ -3612,19 +3614,21 @@ fun! s:NetrwMarkFile(islocal,fname)
     let s:netrwmarkfilemtch_{curbufnr}= s:netrwmarkfilemtch_{curbufnr}.'\|\<'.escape(a:fname,g:netrw_markfileesc."'".g:netrw_markfileesc."'").'\>'
    else
     " remove filename from list
-"    call Decho("remove filename<".a:fname."> from markfilelist<".string(s:netrwmarkfilelist_{curbufnr}).">")
+"    call Decho("remove filename<".a:fname."> from markfilelist_".curbufnr."<".string(s:netrwmarkfilelist_{curbufnr}).">")
     call filter(s:netrwmarkfilelist_{curbufnr},'v:val != a:fname')
     if s:netrwmarkfilelist_{curbufnr} == []
+"     call Decho("markfile list now empty, unlet s:netrwmarkfilelist_".curbufnr." and ...mtch_".curbufnr)
      unlet s:netrwmarkfilelist_{curbufnr}
      unlet s:netrwmarkfilemtch_{curbufnr}
     else
+"     call Decho("rebuild s:netrwmarkfilemtch_".curbufnr)
      let s:netrwmarkfilemtch_{curbufnr}= ""
      let first                           = 1
      for fname in s:netrwmarkfilelist_{curbufnr}
       if first
-       let s:netrwmarkfilemtch_{curbufnr}= s:netrwmarkfilemtch_{curbufnr}.'\<'.escape(a:fname,g:netrw_markfileesc."'".g:netrw_markfileesc."'").'\>'
+       let s:netrwmarkfilemtch_{curbufnr}= s:netrwmarkfilemtch_{curbufnr}.'\<'.escape(fname,g:netrw_markfileesc."'".g:netrw_markfileesc."'").'\>'
       else
-       let s:netrwmarkfilemtch_{curbufnr}= s:netrwmarkfilemtch_{curbufnr}.'\|\<'.escape(a:fname,g:netrw_markfileesc."'".g:netrw_markfileesc."'").'\>'
+       let s:netrwmarkfilemtch_{curbufnr}= s:netrwmarkfilemtch_{curbufnr}.'\|\<'.escape(fname,g:netrw_markfileesc."'".g:netrw_markfileesc."'").'\>'
       endif
       let first= 0
      endfor
@@ -4580,7 +4584,7 @@ fun! netrw#NetrwObtain(islocal,fname,...)
     " restore status line
     let &stl        = s:netrw_users_stl
     let &laststatus = s:netrw_users_ls
-    redraw!
+"    redraw!
 
     " restore NetrwMethod
     if exists("keep_netrw_method")
@@ -4765,7 +4769,7 @@ fun! s:NetrwRefresh(islocal,dirname)
    2match none
   endif
 
-  redraw!
+"  redraw!
 "  call Dret("NetrwRefresh")
 endfun
 
@@ -4814,12 +4818,16 @@ fun! s:NetrwSetSort()
     return
    endif
    if seq == '*'
-    exe 'silent keepjumps '.w:netrw_bannercnt.',$v/^\d\{3}\//s/^/'.spriority.'/'
+    let starpriority= spriority
    else
     exe 'silent keepjumps '.w:netrw_bannercnt.',$g/'.eseq.'/s/^/'.spriority.'/'
+    exe 'silent keepjumps '.w:netrw_bannercnt.',$g/^\d\{3}\/\d\{3}\//s/^\d\{3}\///'
    endif
    let priority = priority + 1
   endwhile
+  if exists("starpriority")
+   exe 'silent keepjumps '.w:netrw_bannercnt.',$v/^\d\{3}\//s/^/'.starpriority.'/'
+  endif
 
   " Following line associated with priority -- items that satisfy a priority
   " pattern get prefixed by ###/ which permits easy sorting by priority.
@@ -5401,7 +5409,7 @@ fun! s:SetupNetrwStatusLine(statline)
   let &stl=a:statline
   setlocal laststatus=2
 "  call Decho("stl=".&stl)
-  redraw!
+"  redraw!
 
 "  call Dret("SetupNetrwStatusLine : stl=".&stl)
 endfun
@@ -6486,7 +6494,7 @@ fun! netrw#ErrorMsg(level,msg,errnum)
   else
    " (optional) netrw will show messages using echomsg.  Even if the
    " message doesn't appear, at least it'll be recallable via :messages
-   redraw!
+"   redraw!
    if a:level == s:WARNING
     echohl WarningMsg
    elseif a:level == s:ERROR

@@ -49,16 +49,18 @@ syn match  netrwVersion		"(netrw.*)"			contained
 " -----------------------------
 " Special filetype highlighting {{{1
 " -----------------------------
-if exists("netrw_special_syntax") && netrw_special_syntax
+if exists("g:netrw_special_syntax") && netrw_special_syntax
+ syn match netrwBak		"\(\S\+ \)*\S\+\.bak\>"
  syn match netrwCompress	"\(\S\+ \)*\S\+\.\%(gz\|bz2\|Z\|zip\)\>"
  syn match netrwData		"\(\S\+ \)*\S\+\.dat\>"
+ syn match netrwHdr		"\(\S\+ \)*\S\+\.h\>"
  syn match netrwLib		"\(\S\+ \)*\S*\.\%(a\|so\|lib\|dll\)\>"
+ syn match netrwMakeFile	"\<[mM]akefile\>\|\(\S\+ \)*\S\+\.mak\>"
  syn match netrwObj		"\(\S\+ \)*\S*\.\%(o\|obj\)\>"
- syn match netrwTilde		"\(\S\+ \)*\S\+\~\>"
- syn match netrwTmp		"\<tmp\(\S\+ \)*\S\+\>\|\(\S\+ \)*\S*tmp\>"
  syn match netrwTags    	"\<tags\>"
  syn match netrwTags		"\<\(ANmenu\|ANtags\)\>"
- syn match netrwBak		"\(\S\+ \)*\S\+\.bak\>"
+ syn match netrwTilde		"\(\S\+ \)*\S\+\~\>"
+ syn match netrwTmp		"\<tmp\(\S\+ \)*\S\+\>\|\(\S\+ \)*\S*tmp\>"
 endif
 
 " ---------------------------------------------------------------------
@@ -86,8 +88,9 @@ if !exists("did_drchip_netrwlist_syntax")
  " special syntax highlighting (see :he g:netrw_special_syntax)
  hi link netrwBak	NonText
  hi link netrwCompress	Folded
- hi link netrwData	Folded
- hi link netrwLib	Folded
+ hi link netrwData	DiffChange
+ hi link netrwLib	DiffChange
+ hi link netrwMakefile	DiffChange
  hi link netrwObj	Folded
  hi link netrwTilde	Folded
  hi link netrwTmp	Folded

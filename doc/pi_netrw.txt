@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.1.  Last change: 2008 Feb 12
+*pi_netrw.txt*  For Vim version 7.1.  Last change: 2008 Feb 26
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -1295,9 +1295,10 @@ EDITING THE SORTING SEQUENCE		*netrw-S* *netrw-sortsequence* {{{2
 When "Sorted by" is name, one may specify priority via the sorting sequence
 (g:netrw_sort_sequence).  The sorting sequence typically prioritizes the
 name-listing by suffix, although any pattern will do.  Patterns are delimited
-by commas.  The default sorting sequence is:
+by commas.  The default sorting sequence is (all one line):
 >
-	[\/]$,*,\.bak$,\.o$,\.h$,\.info$,\.swp$,\.obj$
+	'[\/]$,\.[a-np-z]$,\.h$,\.c$,\.cpp$,*,\.o$,\.obj$,\.info$,
+	\.swp$,\.bak$,\~$'
 <
 The lone * is where all filenames not covered by one of the other patterns
 will end up.  One may change the sorting sequence by modifying the
@@ -1782,15 +1783,20 @@ your browsing preferences.  (see also: |netrw-settings|)
   *g:netrw_special_syntax*	If true, then certain files will be shown
   				in special syntax in the browser:
 
+					netrwBak     : *.bak
 					netrwCompress: *.gz *.bz2 *.Z *.zip
 					netrwData    : *.dat
-					netrwLib     : *.a *.so *.lib
+					netrwHdr     : *.h
+					netrwLib     : *.a *.so *.lib *.dll
+					netrwMakefile: [mM]akefile *.mak
 					netrwObj     : *.o *.obj
+					netrwTags    : tags ANmenu ANtags
 					netrwTilde   : *~ 
 					netrwTmp     : tmp* *tmp
 
 				These syntax highlighting groups are linked
-				to Folded by default (see |hl-Folded|), but
+				to Folded or DiffChange by default
+				(see |hl-Folded| and |hl-DiffChange|), but
 				one may put lines like >
 					hi link netrwCompress Visual
 <				into one's <.vimrc> to use one's own
@@ -2231,6 +2237,13 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v122: Feb 12, 2008 * bugfix - first sorting sequence match now has
+			     priority
+	      Feb 14, 2008 * bugfix - sorting sequence was effectively ignoring
+			     sequencing priority of anything following '*'
+			   * toggling a marked file was showing incorrect list
+			     (list was correct, but displayed matches weren't)
+			   * |g:netrw_special_syntax| implemented
 	v121: Feb 11, 2008 * Bram M reported that :e file ... :e . would not
 			     retain the alternate file.  Fixed -- I hope!
 			   * bugfix -- apparently v120 broke an explicit
