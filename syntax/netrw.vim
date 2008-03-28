@@ -50,17 +50,17 @@ syn match  netrwVersion		"(netrw.*)"			contained
 " Special filetype highlighting {{{1
 " -----------------------------
 if exists("g:netrw_special_syntax") && netrw_special_syntax
- syn match netrwBak		"\(\S\+ \)*\S\+\.bak\>"
- syn match netrwCompress	"\(\S\+ \)*\S\+\.\%(gz\|bz2\|Z\|zip\)\>"
- syn match netrwData		"\(\S\+ \)*\S\+\.dat\>"
- syn match netrwHdr		"\(\S\+ \)*\S\+\.h\>"
- syn match netrwLib		"\(\S\+ \)*\S*\.\%(a\|so\|lib\|dll\)\>"
- syn match netrwMakeFile	"\<[mM]akefile\>\|\(\S\+ \)*\S\+\.mak\>"
- syn match netrwObj		"\(\S\+ \)*\S*\.\%(o\|obj\)\>"
- syn match netrwTags    	"\<tags\>"
- syn match netrwTags		"\<\(ANmenu\|ANtags\)\>"
- syn match netrwTilde		"\(\S\+ \)*\S\+\~\>"
- syn match netrwTmp		"\<tmp\(\S\+ \)*\S\+\>\|\(\S\+ \)*\S*tmp\>"
+ syn match netrwBak		"\(\S\+ \)*\S\+\.bak\>"				contains=netrwTreeBar
+ syn match netrwCompress	"\(\S\+ \)*\S\+\.\%(gz\|bz2\|Z\|zip\)\>"	contains=netrwTreeBar
+ syn match netrwData		"\(\S\+ \)*\S\+\.dat\>"				contains=netrwTreeBar
+ syn match netrwHdr		"\(\S\+ \)*\S\+\.h\>"				contains=netrwTreeBar
+ syn match netrwLib		"\(\S\+ \)*\S*\.\%(a\|so\|lib\|dll\)\>"		contains=netrwTreeBar
+ syn match netrwMakeFile	"\<[mM]akefile\>\|\(\S\+ \)*\S\+\.mak\>"	contains=netrwTreeBar
+ syn match netrwObj		"\(\S\+ \)*\S*\.\%(o\|obj\)\>"			contains=netrwTreeBar
+ syn match netrwTags    	"\<tags\>"					contains=netrwTreeBar
+ syn match netrwTags		"\<\(ANmenu\|ANtags\)\>"			contains=netrwTreeBar
+ syn match netrwTilde		"\(\S\+ \)*\S\+\~\>"				contains=netrwTreeBar
+ syn match netrwTmp		"\<tmp\(\S\+ \)*\S\+\>\|\(\S\+ \)*\S*tmp\>"	contains=netrwTreeBar
 endif
 
 " ---------------------------------------------------------------------

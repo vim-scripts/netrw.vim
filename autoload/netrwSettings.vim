@@ -1,5 +1,5 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Jun 04, 2007
+" Date:		Mar 11, 2008
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
 " Version:	11
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
@@ -108,10 +108,14 @@ fun! netrwSettings#NetrwSettings()
   put ='let g:netrw_decompress...'
   put = 'let g:netrw_dirhistmax        = '.g:netrw_dirhistmax
   put = 'let g:netrw_fastbrowse        = '.g:netrw_fastbrowse
+  let fnameescline= line("$")
+  put = 'let g:netrw_fname_escape...'
   put = 'let g:netrw_ftp_browse_reject = '.g:netrw_ftp_browse_reject
   put = 'let g:netrw_ftp_list_cmd      = '.g:netrw_ftp_list_cmd
   put = 'let g:netrw_ftp_sizelist_cmd  = '.g:netrw_ftp_sizelist_cmd
   put = 'let g:netrw_ftp_timelist_cmd  = '.g:netrw_ftp_timelist_cmd
+  let globescline= line("$")
+  put ='let g:netrw_glob_escape...'
   put = 'let g:netrw_hide              = '.g:netrw_hide
   put = 'let g:netrw_keepdir           = '.g:netrw_keepdir
   put = 'let g:netrw_list_cmd          = '.g:netrw_list_cmd
@@ -139,6 +143,8 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_scpport           = '.g:netrw_scpport
   put = 'let g:netrw_sshport           = '.g:netrw_sshport
   put = 'let g:netrw_timefmt           = '.g:netrw_timefmt
+  let tmpfileescline= line("$")
+  put ='let g:netrw_tmpfile_escape...'
   put = 'let g:netrw_use_noswf         = '.g:netrw_use_noswf
   put = 'let g:netrw_winsize           = '.g:netrw_winsize
 
@@ -155,12 +161,15 @@ fun! netrwSettings#NetrwSettings()
   " Put in g:netrw_shq setting and g:netrw_cd_escape
   " (deferred so as to avoid the quote manipulation just preceding)
   if g:netrw_shq == "'"
-   call setline(shqline,'let g:netrw_shq               = "'.g:netrw_shq.'"')
+   call setline(shqline,      'let g:netrw_shq               = "'.g:netrw_shq.'"')
   else
-   call setline(shqline,"let g:netrw_shq               = '".g:netrw_shq."'")
+   call setline(shqline,      "let g:netrw_shq               = '".g:netrw_shq."'")
   endif
-  call setline(cdescline,"let g:netrw_cd_escape         = ".'"'.escape(g:netrw_cd_escape,'\"').'"')
+  call setline(cdescline,     "let g:netrw_cd_escape         = ".'"'.escape(g:netrw_cd_escape,'\"').'"')
   call setline(decompressline,"let g:netrw_decompress        = ".substitute(string(g:netrw_decompress),"^'\\(.*\\)'$",'\1',''))
+  call setline(fnameescline,  "let g:netrw_fname_escape      = '".escape(g:netrw_fname_escape,"'")."'")
+  call setline(globescline,   "let g:netrw_glob_escape       = '".escape(g:netrw_glob_escape,"'")."'")
+  call setline(tmpfileescline,"let g:netrw_tmpfile_escape    = '".escape(g:netrw_tmpfile_escape,"'")."'")
 
   set nomod
 
