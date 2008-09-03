@@ -1,7 +1,7 @@
 " netrwSettings.vim: makes netrw settings simpler
-" Date:		Jul 02, 2008
+" Date:		Sep 03, 2008
 " Maintainer:	Charles E Campbell, Jr <drchipNOSPAM at campbellfamily dot biz>
-" Version:	12
+" Version:	13
 " Copyright:    Copyright (C) 1999-2007 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -19,7 +19,7 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v12"
+let g:loaded_netrwSettings  = "v13"
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1
@@ -100,6 +100,7 @@ fun! netrwSettings#NetrwSettings()
    put = 'let g:netrw_browsex_viewer    = (not defined)'
   endif
   put = 'let g:netrw_compress          = '.g:netrw_compress
+  put = 'let g:netrw_cursorline        = '.g:netrw_cursorline
   let decompressline= line("$")
   put ='let g:netrw_decompress...'
   put = 'let g:netrw_dirhistmax        = '.g:netrw_dirhistmax

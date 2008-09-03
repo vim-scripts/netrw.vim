@@ -1,7 +1,7 @@
 " Language   : Netrw Remote-Directory Listing Syntax
 " Maintainer : Charles E. Campbell, Jr.
-" Last change: Feb 06, 2008
-" Version    : 12
+" Last change: Aug 12, 2008
+" Version    : 14
 " ---------------------------------------------------------------------
 
 " Syntax Clearing: {{{1
@@ -34,7 +34,7 @@ syn match  netrwComment		'".*\%(\t\|$\)'						contains=@NetrwGroup
 syn match  netrwHide		'^"\s*\(Hid\|Show\)ing:'	skipwhite nextgroup=netrwHidePat
 syn match  netrwSlash		"/"				contained
 syn match  netrwHidePat		"[^,]\+"			contained skipwhite nextgroup=netrwHideSep
-syn match  netrwHideSep		","				contained transparent skipwhite nextgroup=netrwHidePat
+syn match  netrwHideSep		","				contained skipwhite nextgroup=netrwHidePat
 syn match  netrwSortBy		"Sorted by"			contained transparent skipwhite nextgroup=netrwList
 syn match  netrwSortSeq		"Sort sequence:"		contained transparent skipwhite nextgroup=netrwList
 syn match  netrwCopyTgt		"Copy/Move Tgt:"		contained transparent skipwhite nextgroup=netrwList
@@ -67,34 +67,35 @@ endif
 " Highlighting Links: {{{1
 if !exists("did_drchip_netrwlist_syntax")
  let did_drchip_netrwlist_syntax= 1
- hi link netrwClassify	Function
- hi link netrwCmdSep	Delimiter
- hi link netrwComment	Comment
- hi link netrwDir	Directory
- hi link netrwHelpCmd	Function
- hi link netrwHidePat	Statement
- hi link netrwList	Statement
- hi link netrwVersion	Identifier
- hi link netrwSymLink	Question
- hi link netrwExe	PreProc
- hi link netrwDateSep	Delimiter
+ hi default link netrwClassify	Function
+ hi default link netrwCmdSep	Delimiter
+ hi default link netrwComment	Comment
+ hi default link netrwDir	Directory
+ hi default link netrwHelpCmd	Function
+ hi default link netrwHidePat	Statement
+ hi default link netrwHideSep	netrwComment
+ hi default link netrwList	Statement
+ hi default link netrwVersion	Identifier
+ hi default link netrwSymLink	Question
+ hi default link netrwExe	PreProc
+ hi default link netrwDateSep	Delimiter
 
- hi link netrwTreeBar	Special
- hi link netrwTimeSep	netrwDateSep
- hi link netrwComma	netrwComment
- hi link netrwHide	netrwComment
- hi link netrwMarkFile	Identifier
+ hi default link netrwTreeBar	Special
+ hi default link netrwTimeSep	netrwDateSep
+ hi default link netrwComma	netrwComment
+ hi default link netrwHide	netrwComment
+ hi default link netrwMarkFile	Identifier
 
  " special syntax highlighting (see :he g:netrw_special_syntax)
- hi link netrwBak	NonText
- hi link netrwCompress	Folded
- hi link netrwData	DiffChange
- hi link netrwLib	DiffChange
- hi link netrwMakefile	DiffChange
- hi link netrwObj	Folded
- hi link netrwTilde	Folded
- hi link netrwTmp	Folded
- hi link netrwTags	Folded
+ hi default link netrwBak	NonText
+ hi default link netrwCompress	Folded
+ hi default link netrwData	DiffChange
+ hi default link netrwLib	DiffChange
+ hi default link netrwMakefile	DiffChange
+ hi default link netrwObj	Folded
+ hi default link netrwTilde	Folded
+ hi default link netrwTmp	Folded
+ hi default link netrwTags	Folded
 endif
 
 " Current Syntax: {{{1
