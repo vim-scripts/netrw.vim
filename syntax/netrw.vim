@@ -22,7 +22,7 @@ syn match  netrwDir		"\%(\S\+ \)*\S\+/"					contains=netrwClassify
 syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"			contains=netrwDateSep skipwhite nextgroup=netrwTime
 syn match  netrwSymLink		"\%(\S\+ \)*\S\+@\ze\%(\s\{2,}\|$\)"  			contains=netrwClassify
 syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" 			contains=netrwClassify
-syn match  netrwTreeBar		"^\%(| \)*"						contains=netrwTreeBarSpace	nextgroup=@netrwTreeGroup
+syn match  netrwTreeBar		"^\%([-+|] \)*"						contains=netrwTreeBarSpace	nextgroup=@netrwTreeGroup
 syn match  netrwTreeBarSpace	" "				contained
 
 syn match  netrwClassify	"[*=|@/]\ze\%(\s\{2,}\|$\)"	contained

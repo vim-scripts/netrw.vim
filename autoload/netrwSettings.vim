@@ -19,7 +19,13 @@
 if exists("g:loaded_netrwSettings") || &cp
   finish
 endif
-let g:loaded_netrwSettings  = "v13"
+let g:loaded_netrwSettings = "v13"
+if v:version < 700
+ echohl WarningMsg
+ echo "***warning*** this version of netrwSettings needs vim 7.0"
+ echohl Normal
+ finish
+endif
 
 " ---------------------------------------------------------------------
 " NetrwSettings: {{{1

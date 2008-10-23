@@ -16,19 +16,16 @@
 "  But be doers of the Word, and not only hearers, deluding your own selves {{{1
 "  (James 1:22 RSV)
 " =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-" ---------------------------------------------------------------------
 " Load Once: {{{1
 if &cp || exists("g:loaded_netrwPlugin")
  finish
 endif
-let g:loaded_netrwPlugin = "v133"
-let s:keepcpo            = &cpo
-if v:version < 700
- echohl WarningMsg | echo "***netrw*** you need vim version 7.0 for this version of netrw" | echohl None
+let g:loaded_netrwPlugin = "v134"
+if v:version < 702
+ echohl WarningMsg | echo "***netrw*** you need vim version 7.2 for this version of netrw" | echohl None
  finish
 endif
-let s:keepcpo= &cpo
+let s:keepcpo = &cpo
 set cpo&vim
 
 " ---------------------------------------------------------------------

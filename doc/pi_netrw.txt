@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.2.  Last change: 2008 Sep 02
+*pi_netrw.txt*  For Vim version 7.2.  Last change: 2008 Oct 23
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -43,6 +43,7 @@
       Changing To A Predecessor Directory................|netrw-u|
       Changing To A Successor Directory..................|netrw-U|
       Customizing Browsing With A User Function..........|netrw-x|
+      Deleting Bookmarks.................................|netrw-mB|
       Deleting Files Or Directories......................|netrw-D|
       Directory Exploring Commands.......................|netrw-explore|
       Exploring With Stars and Patterns..................|netrw-star|
@@ -159,16 +160,33 @@ EXTERNAL APPLICATIONS AND PROTOCOLS			*netrw-externapp* {{{2
 
 	Protocol  Variable	    Default Value
 	--------  ----------------  -------------
-	   dav:    *g:netrw_dav_cmd*  = "cadaver"
-	 fetch:  *g:netrw_fetch_cmd*  = "fetch -o"    if fetch is available
-	   ftp:    *g:netrw_ftp_cmd*  = "ftp"
-	  http:   *g:netrw_http_cmd*  = "curl -o"     if     curl  is available
-	  http:    g:netrw_http_cmd   = "wget -q -O"  elseif wget  is available
-          http:    g:netrw_http_cmd   = "fetch -o"    elseif fetch is available
-	   rcp:    *g:netrw_rcp_cmd*  = "rcp"
-	 rsync:  *g:netrw_rsync_cmd*  = "rsync -a"
-	   scp:    *g:netrw_scp_cmd*  = "scp -q"
-	  sftp:   *g:netrw_sftp_cmd*  = "sftp"
+	   dav:  *g:netrw_dav_cmd*   = "cadaver"     if cadaver is executable
+	   dav:   g:netrw_dav_cmd    = "curl -o"     elseif curl is available
+	 fetch:  *g:netrw_fetch_cmd* = "fetch -o"    if fetch is available
+	   ftp:  *g:netrw_ftp_cmd*   = "ftp"
+	  http:  *g:netrw_http_cmd*  = "elinks"     if   elinks  is available
+	  http:   g:netrw_http_cmd   = "links"      elseif links is available
+	  http:   g:netrw_http_cmd   = "curl"       elseif curl  is available
+	  http:   g:netrw_http_cmd   = "wget"       elseif wget  is available
+          http:   g:netrw_http_cmd   = "fetch"      elseif fetch is available
+	   rcp:  *g:netrw_rcp_cmd*   = "rcp"
+	 rsync:  *g:netrw_rsync_cmd* = "rsync -a"
+	   scp:  *g:netrw_scp_cmd*   = "scp -q"
+	  sftp:  *g:netrw_sftp_cmd*  = "sftp"
+
+	*g:netrw_http_xcmd* : the option string for http://... protocols are
+	specified via this variable and may be independently oveerridden.
+	 
+		    elinks : "-dump >"
+		    links  : "-dump >"
+		    curl   : "-o"
+		    wget   : "-q -O"
+		    fetch  : "-o"
+
+	For example, if your system has elinks but you want to see the html
+	source in detail rather than a text rendering thereof, you may wish
+	to have  let g:netrw_http_xcmd= "-source >" in your .vimrc.
+
 
 READING						*netrw-read* *netrw-nread* {{{2
 
@@ -678,7 +696,8 @@ variables listed below, and may be modified by the user.
                                                   read via ftp automatically
                                                   transformed however they wish
                                                   by NetReadFixup()
-    g:netrw_dav_cmd    variable   ="cadaver"
+    g:netrw_dav_cmd    variable   ="cadaver"      if cadaver  is executable
+    g:netrw_dav_cmd    variable   ="curl -o"      elseif curl is executable
     g:netrw_fetch_cmd  variable   ="fetch -o"     if fetch is available
     g:netrw_ftp_cmd    variable   ="ftp"
     g:netrw_http_cmd   variable   ="fetch -o"     if      fetch is available
@@ -929,7 +948,7 @@ QUICK REFERENCE: MAPS				*netrw-browse-maps* {{{2
 		         * the user doesn't already have a <2-leftmouse> mapping
 			   defined before netrw is autoloaded,
 			then a double clicked leftmouse button will return
-			to the netrw browser window.
+			to the netrw browser window.  See |g:netrw_retmap|.
 	<s-leftmouse>	(gvim only) like mf, will mark files
 
 				*netrw-quickcom* *netrw-quickcoms*
@@ -946,13 +965,18 @@ QUICK REFERENCE: COMMANDS	*netrw-explore-cmds* *netrw-browse-cmds* {{{2
      :Vexplore[!] [dir] Vertical Split & Explore...............|netrw-explore|
 
 BOOKMARKING A DIRECTORY	*netrw-mb* *netrw-bookmark* *netrw-bookmarks* {{{2
+
 One may easily "bookmark" a directory by using >
 
-	{cnt}mb
+	mb
 <
-Any count may be used.  One may use viminfo's "!" option (|'viminfo'|) to
-retain bookmarks between vim sessions.  See |netrw-gb| for how to return
-to a bookmark and |netrw-qb| for how to list them.
+Bookmarks are retained in between sesions in a $HOME/.netrwbook file, and are
+kept in sorted order.
+
+Related Topics:
+	|netrw-gb| how to return (go) to a bookmark
+	|netrw-mB| how to delete bookmarks
+	|netrw-qb| how to list bookmarks
 
 
 BROWSING						*netrw-cr* {{{2
@@ -1085,8 +1109,12 @@ To change directory back to a bookmarked directory, use
 
 	{cnt}gb
 
-Any count may be used to reference any of the bookmarks.  See |netrw-mb| on
-how to bookmark a directory and |netrw-qb| on how to list bookmarks.
+Any count may be used to reference any of the bookmarks.
+
+Related Topics:
+	|netrw-mB| how to delete bookmarks
+	|netrw-mb| how to return to a bookmark
+	|netrw-qb| how to list bookmarks
 
 
 CHANGING TO A PREDECESSOR DIRECTORY	*netrw-u* *netrw-updir* {{{2
@@ -1191,6 +1219,18 @@ with a request.
 Associated setting variable: |g:netrw_browsex_viewer|
 
 							*netrw-curdir*
+DELETING BOOKMARKS					*netrw-mB* {{{2
+
+To delete a bookmark, use >
+
+	{cnt}mB
+<
+Related Topics:
+	|netrw-gb| how to return (go) to a bookmark
+	|netrw-mb| how to make a bookmark
+	|netrw-qb| how to list bookmarks
+
+
 DELETING FILES OR DIRECTORIES	*netrw-delete* *netrw-D* *netrw-del* {{{2
 
 If files have not been marked with |netrw-mf|:   (local marked file list)
@@ -1232,12 +1272,12 @@ Associated setting variable: |g:netrw_local_rmdir| |g:netrw_rm_cmd|
 *netrw-rexplore* *netrw-sexplore* *netrw-texplore* *netrw-vexplore*
 DIRECTORY EXPLORATION COMMANDS  {{{2
 
-     :Explore[!]   [dir]... Explore directory of current file       *:Explore*
-     :Hexplore[!]  [dir]... Horizontal Split & Explore              *:Hexplore*
-     :Rexplore          ... Return to Explorer                      *:Rexplore*
-     :Sexplore[!]  [dir]... Split&Explore directory of current file *:Sexplore*
-     :Texplore     [dir]... Tab              & Explore              *:Texplore*
-     :Vexplore[!]  [dir]... Vertical   Split & Explore              *:Vexplore*
+     :[N]Explore[!]   [dir]... Explore directory of current file     *:Explore*
+     :[N]Hexplore[!]  [dir]... Horizontal Split & Explore            *:Hexplore*
+     :Rexplore             ... Return to Explorer                    *:Rexplore*
+     :[N]Sexplore[!]  [dir]... Split&Explore current file's directory*:Sexplore*
+     :Texplore        [dir]... Tab              & Explore            *:Texplore*
+     :[N]Vexplore[!]  [dir]... Vertical   Split & Explore            *:Vexplore*
 
      Used with :Explore **/pattern : (also see |netrw-starstar|)
      :Nexplore............. go to next matching file                *:Nexplore*
@@ -1259,11 +1299,15 @@ DIRECTORY EXPLORATION COMMANDS  {{{2
 :Vexplore! [dir] does an :Explore with |:rightbelow| vertical splitting.
 :Texplore  [dir] does a tabnew before generating the browser window
 
-By default, these commands use the current file's directory.  However, one
-may explicitly provide a directory (path) to use.
+By default, these commands use the current file's directory.  However, one may
+explicitly provide a directory (path) to use.
 
-The |g:netrw_winsize| variable also is used, if specified by the user, to
-size Hexplore and Vexplore windows.
+The [N] will override |g:netrw_winsize| to specify the quantity of rows and/or
+columns the new explorer window should have.
+
+Otherwise, the |g:netrw_winsize| variable, if it has been specified by the
+user, is used to control the quantity of rows and/or columns new explorer
+windows should have.
 
 :Rexplore  This command is a little different from the others.  When one
            edits a file, for example by pressing <cr> when atop a file in
@@ -1508,11 +1552,15 @@ passwords:
 
 LISTING BOOKMARKS AND HISTORY		*netrw-qb* *netrw-listbookmark* {{{2
 
-Pressing "qb" (query bookmarks) will list the bookmarked directories and
-directory traversal history (query).
+Pressing "qb" (query bookmarks) will list both the bookmarked directories and
+directory traversal history.
 
-(see |netrw-mb|, |netrw-gb|, |netrw-u|, and |netrw-U|)
-
+Related Topics:
+	|netrw-gb| how to return (go) to a bookmark
+	|netrw-mb| how to make a bookmark
+	|netrw-mB| how to delete bookmarks
+	|netrw-u|  change to a predecessor directory via the history stack
+	|netrw-U|  change to a successor   directory via the history stack
 
 MAKING A NEW DIRECTORY					*netrw-d* {{{2
 
@@ -1865,6 +1913,12 @@ your browsing preferences.  (see also: |netrw-settings|)
   *g:netrw_hide*		if true, the hiding list is used
 				 default: =0
 
+  *g:netrw_home*		The home directory for where bookmarks and
+				history are saved (as .netrwbook and
+				.netrwhist).
+				 default: the first directory on the
+				         |'runtimepath'|
+
   *g:netrw_keepdir*		=1 (default) keep current directory immune from
 				   the browsing directory.
 				=0 keep the current directory the same as the
@@ -1913,11 +1967,23 @@ your browsing preferences.  (see also: |netrw-settings|)
   *g:netrw_mkdir_cmd*		command for making a remote directory
 				 default: "ssh USEPORT HOSTNAME mkdir"
 
-  *g:netrw_retmap*		if it exists and is set to one, then
-				<2-leftmouse> will be mapped for easy
+  *g:netrw_retmap*		if it exists and is set to one, then:
+				 * if in a netrw-selected file, AND
+				 * no normal-mode <2-leftmouse> mapping exists,
+				then the <2-leftmouse> will be mapped for easy
 				return to the netrw browser window.
-				(example: click once to select and open
-				a file, double-click to return)
+				 example: click once to select and open a file,
+				          double-click to return.
+
+				Note that one may instead choose to:
+				 * let g:netrw_retmap= 1, AND
+				 * nmap <silent> YourChoice <Plug>NetrwReturn
+				and have another mapping instead of
+				<2-leftmouse> to invoke the return.
+
+				You may also use the |:Rexplore| command to do
+				the same thing.
+
 				  default: =0
 
   *g:netrw_rm_cmd*		command for removing files
@@ -2439,10 +2505,33 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v134: Sep 30, 2008 * (Sander Marechal) provided a bugfix involving
+			     the use of the |netrw-t| command with a remote
+			     directory.
+	      Sep 30, 2008 * using "x" on a remote jpg was failing; fixed.
+	      Oct 03, 2008 * bookmarks now go on a list and are stored to
+			     the first directory on the |'runtimepath'| in
+			     the hopes of making their retention reliable.
+			     History now also goes to that directory.
+	      Oct 07, 2008 * Included check that vim 7.0 or later is in use.
+	      Oct 07, 2008 * Improved |g:netrw_retmap| handling.
+	      Oct 12, 2008 * Based upon Sébastien Migniot's suggestion, if
+			     cadaver isn't available then netrw will try to
+			     use curl for the dav://... protocol.
+	      Oct 13, 2008 * added @*/ to netrw buffers' |'iskeyword'|setting
+			     This lets mf (|netrw-mf|) mark directories, links
+			     and executables.
+	      Oct 13, 2008 * avoids a second NetrwBrowse() refresh when
+			     g:netrw_fastbrowse is <= 1 (slow, medium speed)
+	      Oct 22, 2008 * |g:netrw_http_xcmd| may now be overridden
+			     independently of |g:netrw_http_cmd|.
+	      Oct 23, 2008 * [N] added to the various Explore commands to
+			     let users specify the width/height of new
+			     explorer windows, overriding |g:netrw_winsize|.
 	v133: Aug 10, 2008 * NetReadFixup() for win95 was missing some "a:"s
 	      Aug 12, 2008 * (Jan Minář) an error condition in NetrwMethod()
-			     wasn't being used, resulting in b:netrw_fname
-			     undefined errors
+			     wasn't being used, resulting in "b:netrw_fname
+			     undefined" errors
 	      Aug 12, 2008 * (François Ingeirest) asked that "hi link" be
 			     changed to hi default link in the netrw syntax
 			     files.
