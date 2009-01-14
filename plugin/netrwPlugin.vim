@@ -20,7 +20,7 @@
 if &cp || exists("g:loaded_netrwPlugin")
  finish
 endif
-let g:loaded_netrwPlugin = "v134"
+let g:loaded_netrwPlugin = "v135"
 if v:version < 702
  echohl WarningMsg | echo "***netrw*** you need vim version 7.2 for this version of netrw" | echohl None
  finish
@@ -49,8 +49,8 @@ augroup Network
   au BufReadCmd  file://*		exe "silent doau BufReadPre ".fnameescape(netrw#RFC2396(expand("<amatch>")))|exe 'e '.fnameescape(substitute(netrw#RFC2396(expand("<amatch>")),'file://\(.*\)','\1',""))|exe "bwipe ".fnameescape(expand("<amatch>"))|exe "silent doau BufReadPost ".fnameescape(netrw#RFC2396(expand("<amatch>")))
   au BufReadCmd  file://localhost/*	exe "silent doau BufReadPre ".fnameescape(netrw#RFC2396(expand("<amatch>")))|exe 'e '.fnameescape(substitute(netrw#RFC2396(expand("<amatch>")),'file://localhost/\(.*\)','\1',""))|exe "bwipe ".fnameescape(substitute(expand("<amatch>"),'file://\(\k\+@\)\=','',''))|exe "silent doau BufReadPost ".fnameescape(netrw#RFC2396(expand("<amatch>")))
  endif
- au BufReadCmd   ftp://*,rcp://*,scp://*,http://*,dav://*,davs://*,rsync://*,sftp://*	exe "silent doau BufReadPre ".fnameescape(expand("<amatch>"))|exe '2Nread '.fnameescape(expand("<amatch>"))|exe "silent doau BufReadPost ".fnameescape(expand("<amatch>"))
- au FileReadCmd  ftp://*,rcp://*,scp://*,http://*,dav://*,davs://*,rsync://*,sftp://*	exe "silent doau FileReadPre ".fnameescape(expand("<amatch>"))|exe 'Nread '.fnameescape(expand("<amatch>"))|exe "silent doau FileReadPost ".fnameescape(expand("<amatch>"))
+ au BufReadCmd   ftp://*,rcp://*,scp://*,http://*,dav://*,davs://*,rsync://*,sftp://*	exe "silent doau BufReadPre ".fnameescape(expand("<amatch>"))|call netrw#Nread(2,expand("<amatch>"))|exe "silent doau BufReadPost ".fnameescape(expand("<amatch>"))
+ au FileReadCmd  ftp://*,rcp://*,scp://*,http://*,dav://*,davs://*,rsync://*,sftp://*	exe "silent doau FileReadPre ".fnameescape(expand("<amatch>"))|call netrw#Nread(1,expand("<amatch>"))|exe "silent doau FileReadPost ".fnameescape(expand("<amatch>"))
  au BufWriteCmd  ftp://*,rcp://*,scp://*,dav://*,davs://*,rsync://*,sftp://*		exe "silent doau BufWritePre ".fnameescape(expand("<amatch>"))|exe 'Nwrite '.fnameescape(expand("<amatch>"))|exe "silent doau BufWritePost ".fnameescape(expand("<amatch>"))
  au FileWriteCmd ftp://*,rcp://*,scp://*,dav://*,davs://*,rsync://*,sftp://*		exe "silent doau FileWritePre ".fnameescape(expand("<amatch>"))|exe "'[,']".'Nwrite '.fnameescape(expand("<amatch>"))|exe "silent doau FileWritePost ".fnameescape(expand("<amatch>"))
  try

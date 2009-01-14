@@ -145,6 +145,7 @@ fun! netrwSettings#NetrwSettings()
   put = 'let g:netrw_special_syntax    = '.g:netrw_special_syntax
   put = 'let g:netrw_ssh_browse_reject = '.g:netrw_ssh_browse_reject
   put = 'let g:netrw_scpport           = '.g:netrw_scpport
+  put = 'let g:netrw_sepchr            = '.g:netrw_sepchr
   put = 'let g:netrw_sshport           = '.g:netrw_sshport
   put = 'let g:netrw_timefmt           = '.g:netrw_timefmt
   let tmpfileescline= line("$")

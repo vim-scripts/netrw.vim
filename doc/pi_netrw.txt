@@ -1,4 +1,4 @@
-*pi_netrw.txt*  For Vim version 7.2.  Last change: 2008 Oct 23
+*pi_netrw.txt*  For Vim version 7.2.  Last change: 2009 Jan 14
 
 	    -----------------------------------------------------
 	    NETRW REFERENCE MANUAL    by Charles E. Campbell, Jr.
@@ -81,6 +81,7 @@
       Renaming Files Or Directories......................|netrw-move|
       Reversing Sorting Order............................|netrw-r|
       Selecting Sorting Style............................|netrw-s|
+      Setting Editing Window.............................|netrw-C|
 10. Problems and Fixes...................................|netrw-problems|
 11. Debugging Netrw Itself...............................|netrw-debug|
 12. History..............................................|netrw-history|
@@ -176,7 +177,7 @@ EXTERNAL APPLICATIONS AND PROTOCOLS			*netrw-externapp* {{{2
 
 	*g:netrw_http_xcmd* : the option string for http://... protocols are
 	specified via this variable and may be independently oveerridden.
-	 
+
 		    elinks : "-dump >"
 		    links  : "-dump >"
 		    curl   : "-o"
@@ -296,6 +297,15 @@ settings are described below, in |netrw-browser-options|, and in
  *b:netrw_lastfile*	last file Network-read/written retained on a per-buffer
 			basis		(supports plain :Nw )
 
+ *g:netrw_chgwin*	specifies a window number where file edits will take
+			place.  (also see |netrw-C|)
+			(default) not defined
+
+ *g:Netrw_funcref*	specifies a function to be called when netrw edits
+			a file.  The file is first edited, and then the
+			function reference (|Funcref|) is called.
+			(default) not defined
+
  *g:netrw_ftp*		if it doesn't exist, use default ftp
 			=0 use default ftp		       (uid password)
 			=1 use alternate ftp method	  (user uid password)
@@ -334,6 +344,13 @@ settings are described below, in |netrw-browser-options|, and in
 
  *g:netrw_scpport*      = "-P" : option to use to set port for scp
  *g:netrw_sshport*      = "-p" : option to use to set port for ssh
+
+ *g:netrw_sepchr*	=\0xff
+ 			=\0x01 for enc == euc-jp (and perhaps it should be for
+			                          others, too, please let me
+						  know)
+			Separates priority codes from filenames internally.
+			See |netrw-p12|.
 
   *g:netrw_silent*	=0 : transfers done normally
 			=1 : transfers done silently
@@ -857,6 +874,18 @@ There are several things you can do to affect the browser's display of files:
 
 See |netrw-browse-cmds| for all the things you can do with netrw!
 
+			*netrw-getftype* *netrw-filigree* *netrw-ftype*
+The |getftype()| function is used to append a bit of filigree to indicate
+filetype to locally listed files:
+
+	directory  : /
+	executable : *
+	fifo       : |
+	links      : @
+	sockets    : =
+
+The filigree also affects the |g:netrw_sort_sequence|.
+
 
 QUICK HELP						*netrw-quickhelp* {{{2
                        (Use ctrl-] to select a topic)~
@@ -895,6 +924,7 @@ QUICK REFERENCE: MAPS				*netrw-browse-maps* {{{2
 		hiding (suppress display of files matching g:netrw_list_hide)
 		showing (display only files which match g:netrw_list_hide)
 	   c	Make browsing directory the current directory        |netrw-c|
+	   C	Setting the editing window                           |netrw-C|
 	   d	Make a directory                                     |netrw-d|
 	   D	Attempt to remove the file(s)/directory(ies)         |netrw-D|
 	   gb	Go to previous bookmarked directory                  |netrw-gb|
@@ -984,7 +1014,7 @@ BROWSING						*netrw-cr* {{{2
 Browsing is simple: move the cursor onto a file or directory of interest.
 Hitting the <cr> (the return key) will select the file or directory.
 Directories will themselves be listed, and files will be opened using the
-protocol given in the original read request.  
+protocol given in the original read request.
 
   CAVEAT: There are four forms of listing (see |netrw-i|).  Netrw assumes that
   two or more spaces delimit filenames and directory names for the long and
@@ -1043,7 +1073,7 @@ new window and cursor at the bottom, have
 
 in your <.vimrc>.  (also see |netrw-t| |netrw-v|)
 
-There is only one tree listing buffer; using "o" on a displayed subdirectory 
+There is only one tree listing buffer; using "o" on a displayed subdirectory
 will split the screen, but the same buffer will be shown twice.
 
 Associated setting variables: |g:netrw_alto| |g:netrw_winsize|
@@ -1070,7 +1100,7 @@ window and cursor at the right, have
 
 in your <.vimrc>.  (also see: |netrw-o| |netrw-t|)
 
-There is only one tree listing buffer; using "v" on a displayed subdirectory 
+There is only one tree listing buffer; using "v" on a displayed subdirectory
 will split the screen, but the same buffer will be shown twice.
 
 Associated setting variable: |g:netrw_altv| |g:netrw_winsize|
@@ -1169,7 +1199,7 @@ Netrw determines which special handler by the following method:
     If g:netrw_browsex_viewer == '-', then netrwFileHandler() will be
     invoked first (see |netrw_filehandler|).
 
-  * for Windows 32 or 64, the url and FileProtocolHandler dlls are used.  
+  * for Windows 32 or 64, the url and FileProtocolHandler dlls are used.
   * for Gnome (with gnome-open): gnome-open is used.
   * for KDE (with kfmclient)   : kfmclient is used.
   * for Mac OS X               : open is used.
@@ -1203,11 +1233,11 @@ characters (except for the underscore) in them.  To support suffices that
 contain such characters, netrw will first convert the suffix using the
 following table: >
 
-    @ -> AT       ! -> EXCLAMATION    % -> PERCENT  
-    : -> COLON    = -> EQUAL          ? -> QUESTION 
+    @ -> AT       ! -> EXCLAMATION    % -> PERCENT
+    : -> COLON    = -> EQUAL          ? -> QUESTION
     , -> COMMA    - -> MINUS          ; -> SEMICOLON
-    $ -> DOLLAR   + -> PLUS           ~ -> TILDE    
-<    
+    $ -> DOLLAR   + -> PLUS           ~ -> TILDE
+<
 So, for example: >
 
 	file.rcs,v  ->  NFH_rcsCOMMAv()
@@ -1393,7 +1423,12 @@ When "Sorted by" is name, one may specify priority via the sorting sequence
 (g:netrw_sort_sequence).  The sorting sequence typically prioritizes the
 name-listing by suffix, although any pattern will do.  Patterns are delimited
 by commas.  The default sorting sequence is (all one line):
->
+
+For Unix: >
+	'[\/]$,\<core\%(\.\d\+\)\=,\.[a-np-z]$,\.h$,\.c$,\.cpp$,*,\.o$,\.obj$,
+	\.info$,\.swp$,\.bak$,\~$'
+<
+Otherwise: >
 	'[\/]$,\.[a-np-z]$,\.h$,\.c$,\.cpp$,*,\.o$,\.obj$,\.info$,
 	\.swp$,\.bak$,\~$'
 <
@@ -1810,8 +1845,8 @@ your browsing preferences.  (see also: |netrw-settings|)
 
   *g:netrw_browse_split*	when browsing, <cr> will open the file by:
 				=0: re-using the same window
-				=1: horizontally splitting the window first  
-				=2: vertically   splitting the window first  
+				=1: horizontally splitting the window first
+				=2: vertically   splitting the window first
 				=3: open file in new tab
 				=4: act like "P" (ie. open previous window)
 
@@ -2010,7 +2045,9 @@ your browsing preferences.  (see also: |netrw-settings|)
 <				 default: ""
 
   *g:netrw_sort_sequence*	when sorting by name, first sort by the
-				comma-separated pattern sequence
+				comma-separated pattern sequence.  Note that
+				the filigree added to indicate filetypes
+				should be accounted for in your pattern.
 				 default: '[\/]$,*,\.bak$,\.o$,\.h$,
 				           \.info$,\.swp$,\.obj$'
 
@@ -2076,14 +2113,14 @@ your browsing preferences.  (see also: |netrw-settings|)
 				|:Hexplore| or |:Vexplore|.
 				 default: ""
 
-  *g:netrw_xstrlen*		Controls how netrw computes a string
+  *g:netrw_xstrlen*		Controls how netrw computes string lengths,
   				including multi-byte characters' string
 				length. (thanks to N Weibull, T Mechelynck)
 				=0: uses Vim's built-in strlen()
 				=1: number of codepoints (Latin + a combining
 				    circumflex is two codepoints)  (DEFAULT)
 				=2: number of spacing codepoints (Latin a +
-				    combining circumflex is one spacing 
+				    combining circumflex is one spacing
 				    codepoint; a hard tab is one; wide and
 				    narrow CJK are one each; etc.)
 				=3: virtual length (counting tabs as anything
@@ -2238,6 +2275,16 @@ Related topics:               |netrw-r| |netrw-S|
 Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 
 
+SETTING EDITING WINDOW					*netrw-C* {{{2
+
+One may select a netrw window for editing with the "C" mapping, or by setting
+g:netrw_chgwin to the selected window number.  Subsequent selection of a file
+to edit (|netrw-cr|) will use that window.
+
+Related topics:			|netrw-cr|
+Associated setting variables:	|g:netrw_chgwin|
+
+
 10. Problems and Fixes					*netrw-problems* {{{1
 
 	(This section is likely to grow as I get feedback)
@@ -2314,7 +2361,7 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 	    Put the following line in your |.vimrc|:
 >
 		let g:netrw_keepdir= 0
-<	
+<
 								*netrw-p7*
 	P7. I use Chinese (or other non-ascii) characters in my filenames, and
 	    netrw (Explore, Sexplore, Hexplore, etc) doesn't display them!
@@ -2342,7 +2389,7 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 
 		(Marlin Unruh) This program also works for me. It's a single
 		executable, so he/she can copy it into the Windows\System32
-		folder and create a shortcut to it. 
+		folder and create a shortcut to it.
 
 		(Dudley Fox) You might also wish to consider plink, as it
 		sounds most similar to what you are looking for. plink is an
@@ -2355,7 +2402,7 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 
 		http://sshwindows.sourceforge.net/
 
-		It doesn't need the full Cygwin package. 
+		It doesn't need the full Cygwin package.
 
 		(Antoine Mechelynck) For individual Unix-like programs needed
 		for work in a native-Windows environment, I recommend getting
@@ -2366,7 +2413,7 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 		Unlike Cygwin, which sets up a Unix-like virtual machine on
 		top of Windows, GnuWin32 is a rewrite of Unix utilities with
 		Windows system calls, and its programs works quite well in the
-		cmd.exe "Dos box". 
+		cmd.exe "Dos box".
 
 		(dave) Download WinSCP and use that to connect to the server.
 		In Preferences > Editors, set gvim as your editor:
@@ -2393,7 +2440,7 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 		How to use a private key with 'pscp': >
 
 			http://www.tartarus.org/~simon/puttydoc/Chapter5.html
-			5.2.4 Using public key authentication with PSCP 
+			5.2.4 Using public key authentication with PSCP
 <
 		(Ben Schmidt) I find the ssh included with cwRsync is
 		brilliant, and install cwRsync or cwRsyncServer on most
@@ -2450,6 +2497,16 @@ Associated setting variables: |g:netrw_sort_by| |g:netrw_sort_sequence|
 		  and |netrw-P|).  If you're using gvim, you can press
 		  <leftmouse> in the browser window and then press the
 		  <middlemouse> to select the file.
+	
+								*netrw-p12*
+	P12. My directory isn't sorting correctly, or unwanted letters are
+	     appearing in the listed filenames, or things aren't lining
+	     up properly in the wide listing, ...
+
+	     This may be due to an encoding problem.  I myself usually use
+	     utf-8, but really only use ascii (ie. bytes from 32-126).
+	     Multibyte encodings use two (or more) bytes per character.
+	     You may need to change |g:netrw_sepchr| and/or |g:netrw_xstrlen|.
 
 ==============================================================================
 11. Debugging Netrw Itself				*netrw-debug* {{{1
@@ -2505,6 +2562,27 @@ which is loaded automatically at startup (assuming :set nocp).
 ==============================================================================
 12. History						*netrw-history* {{{1
 
+	v135: Oct 29, 2008 * using |simplify()| on directory names
+			     (supporting handling ".."s in directory names)
+	      Oct 31, 2008 * added special file highlighting for core dumps
+			     under Unix/Linux.  The default sorting sequence
+			     now also gives core dumps priority.
+	      Nov 10, 2008 * uses a call to netrw#Nread() instead of Nread
+			     to avoid having to use fnameescape()
+			   * fixed a tree redrawing problem (open directory,
+			     open subdir, close subdir, close dir)
+	      Nov 19, 2008 * sprinked some histdel("/",-1)s through the code
+			     in an attempt to prevent netrw from changing
+			     the search history.
+	      Jan 02, 2009 * |g:netrw_funcref| included
+	      Jan 05, 2009 * Explore */ **/ *// **// all clear explorer
+			     variables
+	      Jan 05, 2009 * (Panagiotis Louridas) extended s:WinPath()
+			     to remove cygdrive from non-cygwin Windows
+			     paths.  Improved the determination as to
+			     whether or not to do so.
+	      Jan 13, 2009 * included contains=@NoSpell in every syntax
+			     group for syntax/netrw.vim .
 	v134: Sep 30, 2008 * (Sander Marechal) provided a bugfix involving
 			     the use of the |netrw-t| command with a remote
 			     directory.
@@ -2781,7 +2859,7 @@ which is loaded automatically at startup (assuming :set nocp).
 			     decipher the name.
 	      May 07, 2007 * g:netrw_use_errorwindow now allows one to
 			     have error messages go to a reliable window
-			     or to use a less reliable but recallable 
+			     or to use a less reliable but recallable
 			     echoerr method
 	      May 07, 2007 * g:netrw_scpport and g:netrw_sshport support
 			     use of -P and -p, respectively, to set port
