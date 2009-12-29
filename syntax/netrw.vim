@@ -1,7 +1,7 @@
 " Language   : Netrw Remote-Directory Listing Syntax
 " Maintainer : Charles E. Campbell, Jr.
-" Last change: Jan 13, 2009
-" Version    : 15
+" Last change: Jan 14, 2009
+" Version    : 16
 " ---------------------------------------------------------------------
 
 " Syntax Clearing: {{{1
@@ -20,25 +20,25 @@ syn match  netrwPlain		"\(\S\+ \)*\S\+"					contains=@NoSpell
 syn match  netrwSpecial		"\%(\S\+ \)*\S\+[*|=]\ze\%(\s\{2,}\|$\)"		contains=netrwClassify,@NoSpell
 syn match  netrwDir		"\.\{1,2}/"						contains=netrwClassify,@NoSpell
 syn match  netrwDir		"\%(\S\+ \)*\S\+/"					contains=netrwClassify,@NoSpell
-syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"	skipwhite		contains=netrwDateSep,@NoSpell	nextgroup=netrwTime
+syn match  netrwSizeDate	"\<\d\+\s\d\{1,2}/\d\{1,2}/\d\{4}\s"	skipwhite	contains=netrwDateSep,@NoSpell	nextgroup=netrwTime
 syn match  netrwSymLink		"\%(\S\+ \)*\S\+@\ze\%(\s\{2,}\|$\)"  			contains=netrwClassify,@NoSpell
 syn match  netrwExe		"\%(\S\+ \)*\S\+\*\ze\%(\s\{2,}\|$\)" 			contains=netrwClassify,@NoSpell
-syn match  netrwTreeBar		"^\%([-+|] \)*"						contains=netrwTreeBarSpace	nextgroup=@netrwTreeGroup
-syn match  netrwTreeBarSpace	" "				contained
+syn match  netrwTreeBar		"^\%([-+|] \)\+"					contains=netrwTreeBarSpace	nextgroup=@netrwTreeGroup
+syn match  netrwTreeBarSpace	" "					contained
 
-syn match  netrwClassify	"[*=|@/]\ze\%(\s\{2,}\|$\)"	contained
-syn match  netrwDateSep		"/"				contained
-syn match  netrwTime		"\d\{1,2}:\d\{2}:\d\{2}"	contained		contains=netrwTimeSep
+syn match  netrwClassify	"[*=|@/]\ze\%(\s\{2,}\|$\)"		contained
+syn match  netrwDateSep		"/"					contained
+syn match  netrwTime		"\d\{1,2}:\d\{2}:\d\{2}"		contained	contains=netrwTimeSep
 syn match  netrwTimeSep		":"
 
 syn match  netrwComment		'".*\%(\t\|$\)'						contains=@NetrwGroup,@NoSpell
 syn match  netrwHide		'^"\s*\(Hid\|Show\)ing:'	skipwhite		contains=@NoSpell		nextgroup=netrwHidePat
 syn match  netrwSlash		"/"				contained
 syn match  netrwHidePat		"[^,]\+"			contained skipwhite	contains=@NoSpell		nextgroup=netrwHideSep
-syn match  netrwHideSep		","				contained skipwhite nextgroup=netrwHidePat
-syn match  netrwSortBy		"Sorted by"			contained transparent skipwhite nextgroup=netrwList
-syn match  netrwSortSeq		"Sort sequence:"		contained transparent skipwhite nextgroup=netrwList
-syn match  netrwCopyTgt		"Copy/Move Tgt:"		contained transparent skipwhite nextgroup=netrwList
+syn match  netrwHideSep		","				contained skipwhite					nextgroup=netrwHidePat
+syn match  netrwSortBy		"Sorted by"			contained transparent skipwhite				nextgroup=netrwList
+syn match  netrwSortSeq		"Sort sequence:"		contained transparent skipwhite			 	nextgroup=netrwList
+syn match  netrwCopyTgt		"Copy/Move Tgt:"		contained transparent skipwhite				nextgroup=netrwList
 syn match  netrwList		".*$"				contained		contains=netrwComma,@NoSpell
 syn match  netrwComma		","				contained
 syn region netrwQuickHelp	matchgroup=Comment start="Quick Help:\s\+" end="$"	contains=netrwHelpCmd,@NoSpell	keepend contained
